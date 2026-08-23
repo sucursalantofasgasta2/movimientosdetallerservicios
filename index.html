@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Movimientos RAC</title>
+
+<!-- =====================================================
+     FIREBASE
+===================================================== -->
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    query,
+    where,
+    getDocs,
+    orderBy,
+    serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+
+/* =====================================================
+   CONFIGURACIÓN FIREBASE
+
+   REEMPLAZA ESTOS DATOS POR LOS DE TU PROYECTO
+===================================================== */
+
+const firebaseConfig = {
+
+    apiKey: "TU_API_KEY",
+
+    authDomain:
+        "TU-PROYECTO.firebaseapp.com",
+
+    projectId:
+        "TU_PROJECT_ID",
+
+    storageBucket:
+        "TU-PROYECTO.firebasestorage.app",
+
+    messagingSenderId:
+        "TU_MESSAGING_SENDER_ID",
+
+    appId:
+        "TU_APP_ID"
+
+};
+
+
+/* =====================================================
+   INICIALIZAR FIREBASE
+===================================================== */
+
+const app =
+    initializeApp(firebaseConfig);
+
+const db =
+    getFirestore(app);
+
+
+/* =====================================================
+   HACER FIREBASE DISPONIBLE
+   PARA EL RESTO DEL HTML
+===================================================== */
+
+window.firebaseDB = db;
+
+window.firebaseFunctions = {
+
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    query,
+    where,
+    getDocs,
+    orderBy,
+    serverTimestamp
+
+};
+
+
+/* =====================================================
+   INDICAR QUE FIREBASE ESTÁ LISTO
+===================================================== */
+
+window.dispatchEvent(
+    new Event("firebaseReady")
+);
+
+</script>
+
+
+<!-- =====================================================
+     PDF
+===================================================== -->
+
+<script src=
+"https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+</script>
+
+
+<style>
+
+/* =====================================================
+   GENERAL
+===================================================== */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+
+    font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+    background:#f4f6f9;
+
+    color:#172033;
+
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+
+    background:#111827;
+
+    color:white;
+
+    padding:18px 30px;
+
+}
+
+.header{
+
+    max-width:1450px;
+
+    margin:auto;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.logo{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+.logo-icon{
+
+    width:44px;
+
+    height:44px;
+
+    background:#2563eb;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:22px;
+
+}
+
+.logo h1{
+
+    font-size:19px;
+
+}
+
+.logo p{
+
+    color:#9ca3af;
+
+    font-size:12px;
+
+    margin-top:3px;
+
+}
+
+.fecha{
+
+    color:#d1d5db;
+
+    font-size:13px;
+
+}
+
+
+/* =====================================================
+   ESTADO FIREBASE
+===================================================== */
+
+.estado-firebase{
+
+    max-width:1450px;
+
+    margin:15px auto 0;
+
+    padding:0 30px;
+
+}
+
+.estado{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:7px;
+
+    padding:7px 11px;
+
+    border-radius:20px;
+
+    font-size:11px;
+
+    font-weight:bold;
+
+}
+
+.estado-ok{
+
+    background:#dcfce7;
+
+    color:#166534;
+
+}
+
+.estado-error{
+
+    background:#fee2e2;
+
+    color:#991b1b;
+
+}
+
+
+/* =====================================================
+   CONTENEDOR
+===================================================== */
+
+.container{
+
+    max-width:1450px;
+
+    margin:auto;
+
+    padding:30px;
+
+}
+
+
+/* =====================================================
+   TITULO
+===================================================== */
+
+.titulo{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+.titulo h2{
+
+    font-size:28px;
+
+}
+
+.titulo p{
+
+    color:#6b7280;
+
+    margin-top:5px;
+
+}
+
+
+/* =====================================================
+   INDICADORES
+===================================================== */
+
+.indicadores{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(6,1fr);
+
+    gap:15px;
+
+    margin-bottom:25px;
+
+}
+
+.indicador{
+
+    background:white;
+
+    border:1px solid #e3e7ec;
+
+    border-radius:15px;
+
+    padding:20px;
+
+}
+
+.indicador span{
+
+    color:#6b7280;
+
+    font-size:13px;
+
+}
+
+.indicador strong{
+
+    display:block;
+
+    font-size:31px;
+
+    margin-top:10px;
+
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.movimientos-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    1fr 1fr;
+
+    gap:20px;
+
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.movimiento-card{
+
+    background:white;
+
+    border:1px solid #e1e5ea;
+
+    border-radius:16px;
+
+    padding:22px;
+
+    min-height:280px;
+
+}
+
+.card-header{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:18px;
+
+}
+
+.icono{
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:10px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:19px;
+
+}
+
+.icono-verde{
+
+    background:#dcfce7;
+
+}
+
+.icono-azul{
+
+    background:#dbeafe;
+
+}
+
+.icono-rojo{
+
+    background:#fee2e2;
+
+}
+
+.icono-amarillo{
+
+    background:#fef3c7;
+
+}
+
+.icono-naranja{
+
+    background:#ffedd5;
+
+}
+
+.icono-morado{
+
+    background:#ede9fe;
+
+}
+
+.card-header h3{
+
+    font-size:17px;
+
+}
+
+.card-header p{
+
+    color:#9ca3af;
+
+    font-size:12px;
+
+    margin-top:3px;
+
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.input-row{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-bottom:18px;
+
+}
+
+.input-row input{
+
+    flex:1;
+
+    min-width:0;
+
+    padding:13px;
+
+    border:1px solid #d5dae1;
+
+    border-radius:9px;
+
+    font-size:14px;
+
+    text-transform:uppercase;
+
+    outline:none;
+
+}
+
+.input-row input:focus{
+
+    border-color:#2563eb;
+
+}
+
+.btn-add{
+
+    width:46px;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:21px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.btn-add:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+/* =====================================================
+   OBSERVACION
+===================================================== */
+
+.observacion-row{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-bottom:18px;
+
+}
+
+.observacion-row input{
+
+    width:100%;
+
+    padding:11px;
+
+    border:1px solid #d5dae1;
+
+    border-radius:9px;
+
+    outline:none;
+
+    font-size:13px;
+
+}
+
+
+/* =====================================================
+   LISTA
+===================================================== */
+
+.lista{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+
+/* =====================================================
+   ITEM
+===================================================== */
+
+.item{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    background:#f8fafc;
+
+    border:1px solid #edf0f3;
+
+    border-radius:9px;
+
+    padding:10px 12px;
+
+}
+
+.item-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.numero{
+
+    width:24px;
+
+    height:24px;
+
+    border-radius:50%;
+
+    background:#e5e7eb;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:11px;
+
+    font-weight:bold;
+
+}
+
+.patente{
+
+    font-weight:bold;
+
+    font-size:14px;
+
+    letter-spacing:.5px;
+
+}
+
+.hora{
+
+    color:#9ca3af;
+
+    font-size:11px;
+
+    margin-left:5px;
+
+}
+
+.obs{
+
+    color:#6b7280;
+
+    font-size:11px;
+
+    margin-left:10px;
+
+}
+
+.eliminar{
+
+    border:none;
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+    border-radius:7px;
+
+    width:28px;
+
+    height:28px;
+
+    cursor:pointer;
+
+    font-size:18px;
+
+}
+
+
+/* =====================================================
+   VACIO
+===================================================== */
+
+.vacio{
+
+    text-align:center;
+
+    color:#a0a7b1;
+
+    padding:20px;
+
+    font-size:13px;
+
+}
+
+
+/* =====================================================
+   INFORMES
+===================================================== */
+
+.informes{
+
+    margin-top:20px;
+
+    background:white;
+
+    border:1px solid #e1e5ea;
+
+    border-radius:16px;
+
+    padding:22px;
+
+}
+
+.informes-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.informes-header h3{
+
+    font-size:18px;
+
+}
+
+.botones-informe{
+
+    display:flex;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+
+}
+
+.btn{
+
+    border:none;
+
+    border-radius:9px;
+
+    padding:11px 16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.btn-dark{
+
+    background:#111827;
+
+    color:white;
+
+}
+
+.btn-pdf{
+
+    background:#dc2626;
+
+    color:white;
+
+}
+
+.btn-whatsapp{
+
+    background:#16a34a;
+
+    color:white;
+
+}
+
+
+/* =====================================================
+   INFORME BOX
+===================================================== */
+
+.informe{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(7,1fr);
+
+    gap:12px;
+
+}
+
+.informe-box{
+
+    background:#f8fafc;
+
+    border-radius:10px;
+
+    padding:16px;
+
+}
+
+.informe-box span{
+
+    color:#6b7280;
+
+    font-size:12px;
+
+}
+
+.informe-box strong{
+
+    display:block;
+
+    font-size:25px;
+
+    margin-top:8px;
+
+}
+
+
+/* =====================================================
+   DETALLE
+===================================================== */
+
+.detalle-informe{
+
+    margin-top:20px;
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(2,1fr);
+
+    gap:15px;
+
+}
+
+.detalle-box{
+
+    background:#f8fafc;
+
+    border:1px solid #edf0f3;
+
+    border-radius:10px;
+
+    padding:15px;
+
+}
+
+.detalle-box h4{
+
+    margin-bottom:10px;
+
+    font-size:14px;
+
+}
+
+.detalle-box p{
+
+    font-size:13px;
+
+    color:#4b5563;
+
+    padding:5px 0;
+
+    border-bottom:1px solid #e5e7eb;
+
+}
+
+.detalle-box p:last-child{
+
+    border-bottom:none;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1300px){
+
+    .indicadores{
+
+        grid-template-columns:
+        repeat(3,1fr);
+
+    }
+
+    .informe{
+
+        grid-template-columns:
+        repeat(4,1fr);
+
+    }
+
+}
+
+@media(max-width:1000px){
+
+    .informe{
+
+        grid-template-columns:
+        repeat(3,1fr);
+
+    }
+
+}
+
+@media(max-width:750px){
+
+    .container{
+
+        padding:15px;
+
+    }
+
+    .movimientos-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .indicadores{
+
+        grid-template-columns:
+        1fr 1fr;
+
+    }
+
+    .informe{
+
+        grid-template-columns:
+        1fr 1fr;
+
+    }
+
+    .detalle-informe{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .titulo{
+
+        display:block;
+
+    }
+
+    .informes-header{
+
+        display:block;
+
+    }
+
+    .botones-informe{
+
+        margin-top:15px;
+
+    }
+
+}
+
+@media(max-width:500px){
+
+    .indicadores{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .informe{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .botones-informe button{
+
+        width:100%;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+<div class="header">
+
+<div class="logo">
+
+<div class="logo-icon">
+🚗
+</div>
+
+<div>
+
+<h1>MOVIMIENTOS RAC</h1>
+
+<p>Control de movimientos de vehículos</p>
+
+</div>
+
+</div>
+
+<div
+class="fecha"
+id="fecha">
+</div>
+
+</div>
+
+</header>
+
+
+<!-- =====================================================
+     ESTADO FIREBASE
+===================================================== -->
+
+<div class="estado-firebase">
+
+<div
+id="estadoFirebase"
+class="estado estado-error">
+
+🔴 Conectando con Firebase...
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CONTENIDO
+===================================================== -->
+
+<div class="container">
+
+
+<div class="titulo">
+
+<div>
+
+<h2>Movimientos RAC</h2>
+
+<p>
+Registro operativo del día
+</p>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     INDICADORES
+===================================================== -->
+
+<div class="indicadores">
+
+
+<div class="indicador">
+
+<span>
+Ingresos a Taller
+</span>
+
+<strong id="totalIngresos">
+0
+</strong>
+
+</div>
+
+
+<div class="indicador">
+
+<span>
+Pendientes de Retiro
+</span>
+
+<strong id="totalPendientes">
+0
+</strong>
+
+</div>
+
+
+<div class="indicador">
+
+<span>
+Retiros de Taller
+</span>
+
+<strong id="totalRetiros">
+0
+</strong>
+
+</div>
+
+
+<div class="indicador">
+
+<span>
+Rechazos / Reingresos
+</span>
+
+<strong id="totalRechazos">
+0
+</strong>
+
+</div>
+
+
+<div class="indicador">
+
+<span>
+Entregadas a Logística
+</span>
+
+<strong id="totalLogistica">
+0
+</strong>
+
+</div>
+
+
+<div class="indicador">
+
+<span>
+Devolución Definitiva
+</span>
+
+<strong id="totalDevolucion">
+0
+</strong>
+
+</div>
+
+
+</div>
+
+
+<!-- =====================================================
+     MOVIMIENTOS
+===================================================== -->
+
+<div class="movimientos-grid">
+
+
+<!-- INGRESO -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-verde">
+🚗
+</div>
+
+<div>
+
+<h3>
+Ingresos a Taller
+</h3>
+
+<p>
+Registrar vehículos ingresados
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputIngreso"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'INGRESO')">
+
+<button
+class="btn-add"
+onclick="agregar('INGRESO')">
+
++
+
+</button>
+
+</div>
+
+
+<div
+class="lista"
+id="listaIngreso">
+
+</div>
+
+</div>
+
+
+<!-- PENDIENTES -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-naranja">
+⏳
+</div>
+
+<div>
+
+<h3>
+Pendientes de Retiro
+</h3>
+
+<p>
+Registrar vehículos pendientes
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputPendiente"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'PENDIENTE')">
+
+<button
+class="btn-add"
+onclick="agregar('PENDIENTE')">
+
++
+
+</button>
+
+</div>
+
+
+<div
+class="lista"
+id="listaPendiente">
+
+</div>
+
+</div>
+
+
+<!-- RETIROS -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-azul">
+🔧
+</div>
+
+<div>
+
+<h3>
+Retiros de Taller
+</h3>
+
+<p>
+Registrar vehículos retirados
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputRetiro"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'RETIRO')">
+
+<button
+class="btn-add"
+onclick="agregar('RETIRO')">
+
++
+
+</button>
+
+</div>
+
+
+<div
+class="lista"
+id="listaRetiro">
+
+</div>
+
+</div>
+
+
+<!-- RECHAZOS -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-rojo">
+🔴
+</div>
+
+<div>
+
+<h3>
+Rechazos y Reingresos
+</h3>
+
+<p>
+Registrar patente y observación
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputRechazo"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'RECHAZO')">
+
+<button
+class="btn-add"
+onclick="agregar('RECHAZO')">
+
++
+
+</button>
+
+</div>
+
+
+<div class="observacion-row">
+
+<input
+id="observacion"
+placeholder="Observación">
+
+</div>
+
+
+<div
+class="lista"
+id="listaRechazo">
+
+</div>
+
+</div>
+
+
+<!-- LOGISTICA -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-amarillo">
+📦
+</div>
+
+<div>
+
+<h3>
+Entregadas a Logística
+</h3>
+
+<p>
+Registrar vehículos entregados
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputLogistica"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'LOGISTICA')">
+
+<button
+class="btn-add"
+onclick="agregar('LOGISTICA')">
+
++
+
+</button>
+
+</div>
+
+
+<div
+class="lista"
+id="listaLogistica">
+
+</div>
+
+</div>
+
+
+<!-- DEVOLUCION -->
+
+<div class="movimiento-card">
+
+<div class="card-header">
+
+<div class="icono icono-morado">
+🔄
+</div>
+
+<div>
+
+<h3>
+Devolución Definitiva
+</h3>
+
+<p>
+Pendientes de ingreso
+</p>
+
+</div>
+
+</div>
+
+
+<div class="input-row">
+
+<input
+id="inputDevolucion"
+placeholder="Ingrese patente"
+maxlength="8"
+onkeydown="enter(event,'DEVOLUCION')">
+
+<button
+class="btn-add"
+onclick="agregar('DEVOLUCION')">
+
++
+
+</button>
+
+</div>
+
+
+<div
+class="lista"
+id="listaDevolucion">
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<!-- =====================================================
+     INFORMES
+===================================================== -->
+
+<div class="informes">
+
+
+<div class="informes-header">
+
+<h3>
+Informes
+</h3>
+
+
+<div class="botones-informe">
+
+
+<button
+class="btn btn-dark"
+onclick="generarInforme('dia')">
+
+📅 Diario
+
+</button>
+
+
+<button
+class="btn btn-dark"
+onclick="generarInforme('semana')">
+
+📊 Semanal
+
+</button>
+
+
+<button
+class="btn btn-dark"
+onclick="generarInforme('mes')">
+
+📈 Mensual
+
+</button>
+
+
+<button
+class="btn btn-pdf"
+onclick="exportarPDF()">
+
+📄 Exportar PDF
+
+</button>
+
+
+<button
+class="btn btn-whatsapp"
+onclick="enviarWhatsApp()">
+
+📱 WhatsApp
+
+</button>
+
+
+</div>
+
+</div>
+
+
+<div
+class="informe"
+id="informe">
+
+</div>
+
+
+<div
+class="detalle-informe"
+id="detalleInforme">
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+<script>
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let db = null;
+
+let firebaseReady = false;
+
+let movimientos = [];
+
+let informeActual = "dia";
+
+
+/* =====================================================
+   ESPERAR FIREBASE
+===================================================== */
+
+window.addEventListener(
+"firebaseReady",
+async function(){
+
+    db = window.firebaseDB;
+
+    firebaseReady = true;
+
+    document
+    .getElementById("estadoFirebase")
+    .className =
+    "estado estado-ok";
+
+    document
+    .getElementById("estadoFirebase")
+    .innerHTML =
+    "🟢 Firebase conectado";
+
+    await cargarMovimientos();
+
+    generarInforme("dia");
+
+});
+
+
+/* =====================================================
+   FECHA
+===================================================== */
+
+function hoy(){
+
+    const d = new Date();
+
+    return d.getFullYear()
+    + "-"
+    + String(
+        d.getMonth()+1
+      ).padStart(2,"0")
+    + "-"
+    + String(
+        d.getDate()
+      ).padStart(2,"0");
+
+}
+
+
+function fechaBonita(){
+
+    return new Date()
+    .toLocaleDateString(
+        "es-CL",
+        {
+            weekday:"long",
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
+
+}
+
+
+document
+.getElementById("fecha")
+.innerText =
+fechaBonita();
+
+
+/* =====================================================
+   CARGAR MOVIMIENTOS DE HOY
+===================================================== */
+
+async function cargarMovimientos(){
+
+    if(!firebaseReady)
+        return;
+
+    try{
+
+        const {
+            collection,
+            getDocs,
+            query,
+            where
+        } =
+        window.firebaseFunctions;
+
+
+        const q =
+        query(
+
+            collection(
+                db,
+                "movimientos"
+            ),
+
+            where(
+                "fecha",
+                "==",
+                hoy()
+            )
+
+        );
+
+
+        const snapshot =
+        await getDocs(q);
+
+
+        movimientos =
+        snapshot.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+        movimientos.sort(
+            (a,b)=>
+            (a.hora || "")
+            .localeCompare(
+                b.hora || ""
+            )
+        );
+
+
+        actualizar();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No fue posible cargar los datos de Firebase.\n\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   AGREGAR
+===================================================== */
+
+async function agregar(tipo){
+
+    if(!firebaseReady){
+
+        alert(
+            "Firebase todavía no está conectado."
+        );
+
+        return;
+
+    }
+
+
+    let input;
+
+
+    if(tipo==="INGRESO")
+        input =
+        document.getElementById(
+            "inputIngreso"
+        );
+
+
+    if(tipo==="PENDIENTE")
+        input =
+        document.getElementById(
+            "inputPendiente"
+        );
+
+
+    if(tipo==="RETIRO")
+        input =
+        document.getElementById(
+            "inputRetiro"
+        );
+
+
+    if(tipo==="RECHAZO")
+        input =
+        document.getElementById(
+            "inputRechazo"
+        );
+
+
+    if(tipo==="LOGISTICA")
+        input =
+        document.getElementById(
+            "inputLogistica"
+        );
+
+
+    if(tipo==="DEVOLUCION")
+        input =
+        document.getElementById(
+            "inputDevolucion"
+        );
+
+
+    const patente =
+    input.value
+    .trim()
+    .toUpperCase();
+
+
+    if(!patente){
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    let observacion = "";
+
+
+    if(tipo==="RECHAZO"){
+
+        observacion =
+        document
+        .getElementById(
+            "observacion"
+        )
+        .value
+        .trim();
+
+    }
+
+
+    const ahora =
+    new Date();
+
+
+    const nuevo = {
+
+        patente:patente,
+
+        tipo:tipo,
+
+        fecha:hoy(),
+
+        hora:
+        ahora.toLocaleTimeString(
+            "es-CL",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        ),
+
+        observacion:
+        observacion,
+
+        creado:
+        serverTimestamp()
+
+    };
+
+
+    try{
+
+        const {
+            collection,
+            addDoc
+        } =
+        window.firebaseFunctions;
+
+
+        const ref =
+        await addDoc(
+            collection(
+                db,
+                "movimientos"
+            ),
+            nuevo
+        );
+
+
+        movimientos.push({
+
+            id:ref.id,
+
+            ...nuevo
+
+        });
+
+
+        input.value="";
+
+
+        if(tipo==="RECHAZO"){
+
+            document
+            .getElementById(
+                "observacion"
+            )
+            .value="";
+
+        }
+
+
+        actualizar();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No se pudo guardar el movimiento.\n\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ENTER
+===================================================== */
+
+function enter(
+    event,
+    tipo
+){
+
+    if(
+        event.key ===
+        "Enter"
+    ){
+
+        agregar(tipo);
+
+    }
+
+}
+
+
+/* =====================================================
+   ACTUALIZAR
+===================================================== */
+
+function actualizar(){
+
+    const datos =
+    movimientos;
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="INGRESO"
+        ),
+        "listaIngreso"
+    );
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="PENDIENTE"
+        ),
+        "listaPendiente"
+    );
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="RETIRO"
+        ),
+        "listaRetiro"
+    );
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="RECHAZO"
+        ),
+        "listaRechazo"
+    );
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="LOGISTICA"
+        ),
+        "listaLogistica"
+    );
+
+
+    mostrarLista(
+        datos.filter(
+            x=>x.tipo==="DEVOLUCION"
+        ),
+        "listaDevolucion"
+    );
+
+
+    document
+    .getElementById(
+        "totalIngresos"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="INGRESO"
+    ).length;
+
+
+    document
+    .getElementById(
+        "totalPendientes"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="PENDIENTE"
+    ).length;
+
+
+    document
+    .getElementById(
+        "totalRetiros"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="RETIRO"
+    ).length;
+
+
+    document
+    .getElementById(
+        "totalRechazos"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="RECHAZO"
+    ).length;
+
+
+    document
+    .getElementById(
+        "totalLogistica"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="LOGISTICA"
+    ).length;
+
+
+    document
+    .getElementById(
+        "totalDevolucion"
+    )
+    .innerText =
+    datos.filter(
+        x=>x.tipo==="DEVOLUCION"
+    ).length;
+
+}
+
+
+/* =====================================================
+   MOSTRAR LISTA
+===================================================== */
+
+function mostrarLista(
+    datos,
+    id
+){
+
+    const contenedor =
+    document.getElementById(id);
+
+
+    if(
+        datos.length === 0
+    ){
+
+        contenedor.innerHTML = `
+
+        <div class="vacio">
+            Sin registros
+        </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    contenedor.innerHTML =
+    datos.map(
+        (x,index)=>`
+
+        <div class="item">
+
+            <div class="item-left">
+
+                <div class="numero">
+                    ${index+1}
+                </div>
+
+                <div>
+
+                    <span class="patente">
+                        ${x.patente}
+                    </span>
+
+                    <span class="hora">
+                        ${x.hora || ""}
+                    </span>
+
+                    ${
+                        x.observacion
+                        ?
+                        `
+                        <span class="obs">
+                            ${x.observacion}
+                        </span>
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="eliminar"
+                onclick="eliminar('${x.id}')">
+
+                ×
+
+            </button>
+
+        </div>
+
+        `
+    ).join("");
+
+}
+
+
+/* =====================================================
+   ELIMINAR
+===================================================== */
+
+async function eliminar(id){
+
+    if(
+        !confirm(
+            "¿Eliminar este movimiento?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    try{
+
+        const {
+            deleteDoc,
+            doc
+        } =
+        window.firebaseFunctions;
+
+
+        await deleteDoc(
+            doc(
+                db,
+                "movimientos",
+                id
+            )
+        );
+
+
+        movimientos =
+        movimientos.filter(
+            x=>x.id!==id
+        );
+
+
+        actualizar();
+
+        generarInforme(
+            informeActual
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No se pudo eliminar.\n\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   OBTENER DATOS INFORME
+===================================================== */
+
+async function obtenerDatosInforme(
+    periodo
+){
+
+    if(!firebaseReady)
+        return [];
+
+
+    try{
+
+        const {
+            collection,
+            getDocs,
+            query,
+            where
+        } =
+        window.firebaseFunctions;
+
+
+        const ahora =
+        new Date();
+
+
+        let fechaInicio;
+
+
+        if(periodo==="dia"){
+
+            fechaInicio =
+            hoy();
+
+        }
+
+
+        if(periodo==="semana"){
+
+            const d =
+            new Date();
+
+            d.setHours(
+                0,0,0,0
+            );
+
+            d.setDate(
+                d.getDate()-6
+            );
+
+
+            fechaInicio =
+            d.getFullYear()
+            + "-"
+            +
+            String(
+                d.getMonth()+1
+            ).padStart(2,"0")
+            + "-"
+            +
+            String(
+                d.getDate()
+            ).padStart(2,"0");
+
+        }
+
+
+        if(periodo==="mes"){
+
+            fechaInicio =
+            hoy().substring(
+                0,
+                8
+            )
+            + "01";
+
+        }
+
+
+        const q =
+        query(
+
+            collection(
+                db,
+                "movimientos"
+            ),
+
+            where(
+                "fecha",
+                ">=",
+                fechaInicio
+            ),
+
+            where(
+                "fecha",
+                "<=",
+                hoy()
+            )
+
+        );
+
+
+        const snapshot =
+        await getDocs(q);
+
+
+        return snapshot.docs.map(
+            d => ({
+                id:d.id,
+                ...d.data()
+            })
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "No se pudo generar el informe.\n\n" +
+            error.message
+        );
+
+        return [];
+
+    }
+
+}
+
+
+/* =====================================================
+   INFORME
+===================================================== */
+
+async function generarInforme(
+    periodo
+){
+
+    informeActual =
+    periodo;
+
+
+    const datos =
+    await obtenerDatosInforme(
+        periodo
+    );
+
+
+    const tipos = [
+
+        {
+            tipo:"INGRESO",
+            nombre:"Ingresos a Taller"
+        },
+
+        {
+            tipo:"PENDIENTE",
+            nombre:"Pendientes de Retiro"
+        },
+
+        {
+            tipo:"RETIRO",
+            nombre:"Retiros de Taller"
+        },
+
+        {
+            tipo:"RECHAZO",
+            nombre:"Rechazos / Reingresos"
+        },
+
+        {
+            tipo:"LOGISTICA",
+            nombre:"Entregadas a Logística"
+        },
+
+        {
+            tipo:"DEVOLUCION",
+            nombre:"Devolución Definitiva"
+        }
+
+    ];
+
+
+    let html = "";
+
+
+    tipos.forEach(
+        categoria=>{
+
+            const cantidad =
+            datos.filter(
+                x =>
+                x.tipo ===
+                categoria.tipo
+            ).length;
+
+
+            html += `
+
+            <div class="informe-box">
+
+                <span>
+                    ${categoria.nombre}
+                </span>
+
+                <strong>
+                    ${cantidad}
+                </strong>
+
+            </div>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+    <div class="informe-box">
+
+        <span>
+            Total Movimientos
+        </span>
+
+        <strong>
+            ${datos.length}
+        </strong>
+
+    </div>
+
+    `;
+
+
+    document
+    .getElementById(
+        "informe"
+    )
+    .innerHTML =
+    html;
+
+
+    generarDetalle(
+        datos
+    );
+
+}
+
+
+/* =====================================================
+   DETALLE
+===================================================== */
+
+function generarDetalle(
+    datos
+){
+
+    const categorias = [
+
+        {
+            tipo:"INGRESO",
+            titulo:"🚗 Ingresos a Taller"
+        },
+
+        {
+            tipo:"PENDIENTE",
+            titulo:"⏳ Pendientes de Retiro"
+        },
+
+        {
+            tipo:"RETIRO",
+            titulo:"🔧 Retiros de Taller"
+        },
+
+        {
+            tipo:"RECHAZO",
+            titulo:"🔴 Rechazos / Reingresos"
+        },
+
+        {
+            tipo:"LOGISTICA",
+            titulo:"📦 Entregadas a Logística"
+        },
+
+        {
+            tipo:"DEVOLUCION",
+            titulo:"🔄 Devolución Definitiva"
+        }
+
+    ];
+
+
+    let html = "";
+
+
+    categorias.forEach(
+        categoria=>{
+
+            const lista =
+            datos.filter(
+                x =>
+                x.tipo ===
+                categoria.tipo
+            );
+
+
+            html += `
+
+            <div class="detalle-box">
+
+                <h4>
+                    ${categoria.titulo}
+                </h4>
+
+            `;
+
+
+            if(
+                lista.length === 0
+            ){
+
+                html += `
+
+                    <p>
+                        Sin registros
+                    </p>
+
+                `;
+
+            }else{
+
+                lista
+                .sort(
+                    (a,b)=>
+                    (a.fecha+a.hora)
+                    .localeCompare(
+                        b.fecha+b.hora
+                    )
+                )
+                .forEach(
+                    x=>{
+
+                        html += `
+
+                        <p>
+
+                            <strong>
+                                ${x.patente}
+                            </strong>
+
+                            &nbsp;
+
+                            ${x.fecha}
+                            ${x.hora || ""}
+
+                            ${
+                                x.observacion
+                                ?
+                                ` — ${x.observacion}`
+                                :
+                                ""
+                            }
+
+                        </p>
+
+                        `;
+
+                    }
+                );
+
+            }
+
+
+            html += `
+
+            </div>
+
+            `;
+
+        }
+    );
+
+
+    document
+    .getElementById(
+        "detalleInforme"
+    )
+    .innerHTML =
+    html;
+
+}
+
+
+/* =====================================================
+   WHATSAPP
+===================================================== */
+
+async function enviarWhatsApp(){
+
+    const datos =
+    await obtenerDatosInforme(
+        "dia"
+    );
+
+
+    const fecha =
+    new Date()
+    .toLocaleDateString(
+        "es-CL",
+        {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+        }
+    );
+
+
+    let texto =
+    "📋 *INFORME DIARIO – MOVIMIENTOS RAC*\n";
+
+
+    texto +=
+    "📅 Fecha: " +
+    fecha +
+    "\n\n";
+
+
+    function categoria(
+        tipo,
+        titulo
+    ){
+
+        const lista =
+        datos.filter(
+            x=>x.tipo===tipo
+        );
+
+
+        texto +=
+        titulo +
+        " (" +
+        lista.length +
+        ")\n";
+
+
+        if(
+            lista.length === 0
+        ){
+
+            texto +=
+            "• Sin registros\n\n";
+
+            return;
+
+        }
+
+
+        lista.forEach(
+            x=>{
+
+                texto +=
+                "• " +
+                x.patente +
+                " – " +
+                (x.hora || "");
+
+
+                if(
+                    x.observacion
+                ){
+
+                    texto +=
+                    " – " +
+                    x.observacion;
+
+                }
+
+
+                texto +=
+                "\n";
+
+            }
+        );
+
+
+        texto +=
+        "\n";
+
+    }
+
+
+    categoria(
+        "INGRESO",
+        "🚗 *INGRESOS A TALLER*"
+    );
+
+
+    categoria(
+        "PENDIENTE",
+        "⏳ *PENDIENTES DE RETIRO*"
+    );
+
+
+    categoria(
+        "RETIRO",
+        "🔧 *RETIROS DE TALLER*"
+    );
+
+
+    categoria(
+        "RECHAZO",
+        "🔴 *RECHAZOS / REINGRESOS*"
+    );
+
+
+    categoria(
+        "LOGISTICA",
+        "📦 *ENTREGADAS A LOGÍSTICA*"
+    );
+
+
+    categoria(
+        "DEVOLUCION",
+        "🔄 *DEVOLUCIÓN DEFINITIVA – PENDIENTES DE INGRESO*"
+    );
+
+
+    texto +=
+    "━━━━━━━━━━━━━━\n";
+
+
+    texto +=
+    "📊 *TOTAL MOVIMIENTOS: " +
+    datos.length +
+    "*";
+
+
+    const url =
+    "https://wa.me/?text=" +
+    encodeURIComponent(
+        texto
+    );
+
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+}
+
+
+/* =====================================================
+   PDF
+===================================================== */
+
+async function exportarPDF(){
+
+    const datos =
+    await obtenerDatosInforme(
+        "dia"
+    );
+
+
+    const {
+        jsPDF
+    } =
+    window.jspdf;
+
+
+    const pdf =
+    new jsPDF();
+
+
+    let y = 20;
+
+
+    pdf.setFontSize(18);
+
+    pdf.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    pdf.text(
+        "INFORME DIARIO - MOVIMIENTOS RAC",
+        20,
+        y
+    );
+
+
+    y += 9;
+
+
+    pdf.setFontSize(10);
+
+    pdf.setFont(
+        "helvetica",
+        "normal"
+    );
+
+
+    pdf.text(
+        "Fecha: " +
+        new Date()
+        .toLocaleDateString(
+            "es-CL",
+            {
+                weekday:"long",
+                day:"numeric",
+                month:"long",
+                year:"numeric"
+            }
+        ),
+        20,
+        y
+    );
+
+
+    y += 12;
+
+
+    pdf.line(
+        20,
+        y,
+        190,
+        y
+    );
+
+
+    y += 10;
+
+
+    const categorias = [
+
+        {
+            tipo:"INGRESO",
+            nombre:"Ingresos a Taller"
+        },
+
+        {
+            tipo:"PENDIENTE",
+            nombre:"Pendientes de Retiro"
+        },
+
+        {
+            tipo:"RETIRO",
+            nombre:"Retiros de Taller"
+        },
+
+        {
+            tipo:"RECHAZO",
+            nombre:"Rechazos / Reingresos"
+        },
+
+        {
+            tipo:"LOGISTICA",
+            nombre:"Entregadas a Logística"
+        },
+
+        {
+            tipo:"DEVOLUCION",
+            nombre:"Devolución Definitiva"
+        }
+
+    ];
+
+
+    pdf.setFontSize(11);
+
+
+    categorias.forEach(
+        categoria=>{
+
+            const lista =
+            datos.filter(
+                x =>
+                x.tipo ===
+                categoria.tipo
+            );
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            pdf.text(
+                categoria.nombre,
+                20,
+                y
+            );
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                String(
+                    lista.length
+                ),
+                170,
+                y
+            );
+
+
+            y += 8;
+
+        }
+    );
+
+
+    y += 3;
+
+
+    pdf.line(
+        20,
+        y,
+        190,
+        y
+    );
+
+
+    y += 9;
+
+
+    pdf.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    pdf.text(
+        "TOTAL MOVIMIENTOS",
+        20,
+        y
+    );
+
+
+    pdf.text(
+        String(
+            datos.length
+        ),
+        170,
+        y
+    );
+
+
+    y += 15;
+
+
+    pdf.setFontSize(13);
+
+    pdf.text(
+        "Detalle de movimientos",
+        20,
+        y
+    );
+
+
+    y += 9;
+
+
+    categorias.forEach(
+        categoria=>{
+
+            const lista =
+            datos.filter(
+                x =>
+                x.tipo ===
+                categoria.tipo
+            );
+
+
+            if(
+                lista.length === 0
+            )
+            return;
+
+
+            pdf.setFontSize(10);
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                categoria.nombre,
+                20,
+                y
+            );
+
+
+            y += 6;
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            lista.forEach(
+                x=>{
+
+                    if(
+                        y > 275
+                    ){
+
+                        pdf.addPage();
+
+                        y = 20;
+
+                    }
+
+
+                    let linea =
+                    "• " +
+                    x.patente +
+                    "   " +
+                    (x.fecha || "") +
+                    " " +
+                    (x.hora || "");
+
+
+                    if(
+                        x.observacion
+                    ){
+
+                        linea +=
+                        "   " +
+                        x.observacion;
+
+                    }
+
+
+                    pdf.text(
+                        linea,
+                        25,
+                        y
+                    );
+
+
+                    y += 5;
+
+                }
+            );
+
+
+            y += 4;
+
+        }
+    );
+
+
+    if(
+        y > 270
+    ){
+
+        pdf.addPage();
+
+        y = 20;
+
+    }
+
+
+    pdf.setFontSize(8);
+
+    pdf.setFont(
+        "helvetica",
+        "normal"
+    );
+
+
+    pdf.text(
+        "Generado automáticamente por Movimientos RAC",
+        20,
+        285
+    );
+
+
+    pdf.save(
+        "Informe_RAC_" +
+        hoy() +
+        ".pdf"
+    );
+
+}
+
+
+</script>
+
+</body>
+</html>
