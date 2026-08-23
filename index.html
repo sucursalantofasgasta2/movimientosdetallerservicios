@@ -1,400 +1,332 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Movimientos Taller y Servicios RAC</title>
-    
-    <!-- Tailwind CSS desde CDN para estilos modernos y limpios -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Firebase SDK (v9/v10 Compatibility Version) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-    <!-- html2pdf.js para exportar reportes a PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
-        }
-
-        /* Estilos específicos para la generación e impresión del Informe PDF */
-        #informeArea {
-            background-color: #ffffff;
-            color: #111827;
-            padding: 30px;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .informe-titulo {
-            font-size: 24px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            color: #111827;
-            letter-spacing: 0.5px;
-        }
-
-        .informe-subtitulo {
-            font-size: 14px;
-            color: #374151;
-            margin-bottom: 24px;
-            font-weight: 500;
-        }
-
-        .informe-seccion-titulo {
-            font-size: 16px;
-            font-weight: bold;
-            color: #111827;
-            margin-top: 18px;
-            margin-bottom: 6px;
-        }
-
-        .informe-item {
-            font-size: 14px;
-            color: #1f2937;
-            margin-left: 12px;
-            margin-bottom: 4px;
-            font-family: monospace;
-        }
-
-        .informe-vacio {
-            font-size: 13px;
-            color: #9ca3af;
-            margin-left: 12px;
-            font-style: italic;
-            margin-bottom: 4px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movimientos RAC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-6">
 
-    <div class="max-w-5xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="max-w-7xl mx-auto mb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Movimientos RAC</h1>
+      <p class="text-sm text-slate-500">Registro operativo del día</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <input type="date" id="filtroFecha" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+        <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span> Firebase conectado
+      </span>
+    </div>
+  </div>
 
-        <!-- HEADER & STATUS -->
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Control de Movimientos Taller RAC</h1>
-                <p class="text-sm text-gray-500">Gestión de Estados, Recepción y Entregas de Vehículos</p>
-            </div>
-            <div id="firebaseStatus" class="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-800 font-medium text-sm">
-                <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></span>
-                <span>Conectando con Firebase...</span>
-            </div>
+  <!-- Contadores -->
+  <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Ingresos a Taller</p>
+      <p id="cnt-ingresos" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Pendientes de Retiro</p>
+      <p id="cnt-pendientes" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Retiros de Taller</p>
+      <p id="cnt-retiros" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Rechazos / Reingresos</p>
+      <p id="cnt-rechazos" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Entregadas a Logística</p>
+      <p id="cnt-logistica" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <p class="text-xs font-medium text-slate-500">Devolución Definitiva</p>
+      <p id="cnt-devolucion" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+    </div>
+  </div>
+
+  <!-- Tarjetas de Categorías -->
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    
+    <!-- Ingresos a Taller -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-emerald-50 rounded-xl">🛻</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Ingresos a Taller</h2>
+          <p class="text-xs text-slate-400">Registrar vehículos ingresados</p>
         </div>
-
-        <!-- FORMULARIO DE REGISTRO DE MOVIMIENTO -->
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Registrar Nuevo Movimiento</h2>
-            
-            <form id="formMovimiento" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Patente</label>
-                    <input type="text" id="inputPatente" placeholder="Ej: SWVR65" required uppercase
-                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 uppercase font-mono text-gray-800">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Movimiento</label>
-                    <select id="selectTipo" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Seleccionar Estado --</option>
-                        <option value="Ingresos a Taller">Ingresos a Taller</option>
-                        <option value="Pendientes de Retiro">Pendientes de Retiro</option>
-                        <option value="Retiros de Taller">Retiros de Taller</option>
-                        <option value="Rechazos / Reingresos">Rechazos / Reingresos</option>
-                        <option value="Entregadas a Logistica">Entregadas a Logística</option>
-                        <option value="Devolucion Definitiva">Devolución Definitiva</option>
-                        <option value="Devolucion Definitiva Pendiente de Ingreso">Devolución Definitiva Pendiente de Ingreso</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                    <input type="date" id="inputFecha" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <div class="md:col-span-3 flex justify-end mt-2">
-                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition flex items-center gap-2">
-                        <span>Registrar Patente</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- LISTADO Y FILTROS -->
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b pb-4">
-                <h2 class="text-lg font-bold text-gray-800">Registros del Día</h2>
-                <div class="flex items-center gap-3">
-                    <input type="date" id="filtroFecha" class="px-3 py-1.5 border rounded-lg text-sm">
-                    <button id="btnGenerarPDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow transition flex items-center gap-2">
-                        <span>Exportar Informe PDF</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
-                            <th class="py-3 px-4">Patente</th>
-                            <th class="py-3 px-4">Tipo de Movimiento</th>
-                            <th class="py-3 px-4">Fecha</th>
-                            <th class="py-3 px-4">Hora</th>
-                            <th class="py-3 px-4 text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaCuerpo" class="divide-y divide-gray-200 text-sm">
-                        <!-- Carga dinámica -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="in-ingresos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="agregarPatente('Ingresos a Taller', 'in-ingresos')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+      </div>
+      <div id="list-ingresos" class="space-y-2"></div>
     </div>
 
-    <!-- AREA OCULTA PARA IMPRESIÓN/GENERACIÓN DE INFORME PDF -->
-    <div style="display: none;">
-        <div id="informeArea">
-            <div class="informe-titulo">INFORME DE MOVIMIENTOS RAC</div>
-            <div class="informe-subtitulo" id="pdfEncabezadoInfo">Periodo: DIA | Fecha de emisión: 2026-08-23</div>
-            
-            <div id="pdfContenidoCategorias">
-                <!-- Se construye dinámicamente incluyendo las 7 categorías -->
-            </div>
+    <!-- Pendientes de Retiro -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-amber-50 rounded-xl">⏳</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Pendientes de Retiro</h2>
+          <p class="text-xs text-slate-400">Registrar vehículos pendientes</p>
         </div>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="in-pendientes" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="agregarPatente('Pendientes de Retiro', 'in-pendientes')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+      </div>
+      <div id="list-pendientes" class="space-y-2"></div>
     </div>
 
-    <script>
-        // Configuración de Firebase Firestore
-        const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForTemplate-Only",
-            authDomain: "movimientos-taller-c4547.firebaseapp.com",
-            projectId: "movimientos-taller-c4547",
-            storageBucket: "movimientos-taller-c4547.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456"
-        };
+    <!-- Retiros de Taller -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-blue-50 rounded-xl">🔧</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Retiros de Taller</h2>
+          <p class="text-xs text-slate-400">Registrar vehículos retirados</p>
+        </div>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="in-retiros" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="agregarPatente('Retiros de Taller', 'in-retiros')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+      </div>
+      <div id="list-retiros" class="space-y-2"></div>
+    </div>
 
-        // Inicialización de Firebase
-        let db;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            
-            // Probar conexión
-            db.collection('movimientos').limit(1).get().then(() => {
-                const statusEl = document.getElementById('firebaseStatus');
-                statusEl.className = "flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800 font-medium text-sm";
-                statusEl.innerHTML = `<span class="w-3 h-3 rounded-full bg-green-500"></span><span>🟢 Firebase conectado</span>`;
-            }).catch(err => {
-                console.error("Error al conectar Firebase:", err);
-            });
-        } catch (e) {
-            console.error("Error inicializando Firebase:", e);
-        }
+    <!-- Rechazos y Reingresos -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-red-50 rounded-xl">🔴</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Rechazos y Reingresos</h2>
+          <p class="text-xs text-slate-400">Registrar patente y observación</p>
+        </div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <div class="flex gap-2">
+          <input type="text" id="in-rechazos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button onclick="agregarPatente('Rechazos / Reingresos', 'in-rechazos', 'obs-rechazos')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        </div>
+        <input type="text" id="obs-rechazos" placeholder="Observación" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div id="list-rechazos" class="space-y-2"></div>
+    </div>
 
-        // Definición de Categorías Estándar del Informe (7 Categorías)
-        const CATEGORIAS_INFORME = [
-            "Ingresos a Taller",
-            "Pendientes de Retiro",
-            "Retiros de Taller",
-            "Rechazos / Reingresos",
-            "Entregadas a Logistica",
-            "Devolucion Definitiva",
-            "Devolucion Definitiva Pendiente de Ingreso"
-        ];
+    <!-- Entregadas a Logística -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-purple-50 rounded-xl">🚚</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Entregadas a Logística</h2>
+          <p class="text-xs text-slate-400">Registrar entregas a logística</p>
+        </div>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="in-logistica" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="agregarPatente('Entregadas a Logística', 'in-logistica')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+      </div>
+      <div id="list-logistica" class="space-y-2"></div>
+    </div>
 
-        // Elementos del DOM
-        const formMovimiento = document.getElementById('formMovimiento');
-        const inputPatente = document.getElementById('inputPatente');
-        const selectTipo = document.getElementById('selectTipo');
-        const inputFecha = document.getElementById('inputFecha');
-        const filtroFecha = document.getElementById('filtroFecha');
-        const tablaCuerpo = document.getElementById('tablaCuerpo');
-        const btnGenerarPDF = document.getElementById('btnGenerarPDF');
+    <!-- Devolución Definitiva -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl p-2 bg-slate-100 rounded-xl">🏁</span>
+        <div>
+          <h2 class="font-bold text-slate-800">Devolución Definitiva</h2>
+          <p class="text-xs text-slate-400">Registrar devoluciones definitivas</p>
+        </div>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="in-devolucion" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="agregarPatente('Devolución Definitiva', 'in-devolucion')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+      </div>
+      <div id="list-devolucion" class="space-y-2"></div>
+    </div>
 
-        // Establecer fecha actual por defecto
-        const hoyStr = new Date().toISOString().split('T')[0];
-        inputFecha.value = hoyStr;
-        filtroFecha.value = hoyStr;
+  </div>
 
-        // Escuchar cambios en la fecha del filtro
-        filtroFecha.addEventListener('change', cargarMovimientos);
+  <!-- Botones de Acción Globales (WhatsApp) -->
+  <div class="max-w-7xl mx-auto flex justify-end gap-3">
+    <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
+      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></button>
+      Enviar Resumen por WhatsApp
+    </button>
+  </div>
 
-        // Guardar nuevo movimiento
-        formMovimiento.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const patente = inputPatente.value.trim().toUpperCase();
-            const tipo = selectTipo.value;
-            const fecha = inputFecha.value;
-            const ahora = new Date();
-            
-            // Formatear hora (ej: 04:29 p. m.)
-            const horaFormatted = ahora.toLocaleTimeString('es-CL', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+  <script>
+    // Configuración Firebase (Reemplaza con tus credenciales)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROJECT_ID.firebaseapp.com",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_PROJECT_ID.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
 
-            if (!patente || !tipo || !fecha) return;
+    // Inicializar Fecha
+    const filtroFecha = document.getElementById('filtroFecha');
+    const hoy = new Date().toISOString().split('T')[0];
+    filtroFecha.value = hoy;
 
-            try {
-                await db.collection('movimientos').add({
-                    patente: patente,
-                    tipo: tipo,
-                    fecha: fecha,
-                    hora: horaFormatted,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+    filtroFecha.addEventListener('change', cargarDatos);
 
-                inputPatente.value = '';
-                cargarMovimientos();
-            } catch (error) {
-                alert("Error al guardar la patente: " + error.message);
+    let registrosActuales = [];
+
+    // Mapeo de Categorías
+    const categorias = {
+      'Ingresos a Taller': { list: 'list-ingresos', cnt: 'cnt-ingresos' },
+      'Pendientes de Retiro': { list: 'list-pendientes', cnt: 'cnt-pendientes' },
+      'Retiros de Taller': { list: 'list-retiros', cnt: 'cnt-retiros' },
+      'Rechazos / Reingresos': { list: 'list-rechazos', cnt: 'cnt-rechazos' },
+      'Entregadas a Logística': { list: 'list-logistica', cnt: 'cnt-logistica' },
+      'Devolución Definitiva': { list: 'list-devolucion', cnt: 'cnt-devolucion' }
+    };
+
+    function cargarDatos() {
+      const fechaSel = filtroFecha.value;
+      
+      db.collection('movimientos')
+        .where('fecha', '==', fechaSel)
+        .onSnapshot(snapshot => {
+          registrosActuales = [];
+          
+          // Limpiar listas y contadores
+          Object.keys(categorias).forEach(cat => {
+            document.getElementById(categorias[cat].list).innerHTML = '';
+            document.getElementById(categorias[cat].cnt).innerText = '0';
+          });
+
+          let conteos = {
+            'Ingresos a Taller': 0,
+            'Pendientes de Retiro': 0,
+            'Retiros de Taller': 0,
+            'Rechazos / Reingresos': 0,
+            'Entregadas a Logística': 0,
+            'Devolución Definitiva': 0
+          };
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            data.id = doc.id;
+            registrosActuales.push(data);
+
+            if (conteos[data.categoria] !== undefined) {
+              conteos[data.categoria]++;
+              renderCardItem(data, conteos[data.categoria]);
             }
+          });
+
+          // Actualizar contadores
+          Object.keys(conteos).forEach(cat => {
+            if (categorias[cat]) {
+              document.getElementById(categorias[cat].cnt).innerText = conteos[cat];
+            }
+          });
         });
+    }
 
-        // Cargar registros desde Firestore
-        function cargarMovimientos() {
-            const fechaSeleccionada = filtroFecha.value;
-            tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">Cargando datos...</td></tr>`;
+    function renderCardItem(item, idx) {
+      const catConfig = categorias[item.categoria];
+      if (!catConfig) return;
 
-            db.collection('movimientos')
-                .where("fecha", "==", fechaSeleccionada)
-                .get()
-                .then((snapshot) => {
-                    let html = '';
-                    let movimientosList = [];
+      const container = document.getElementById(catConfig.list);
+      const div = document.createElement('div');
+      div.className = "flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-sm";
+      
+      let obsHTML = item.observacion ? `<span class="text-xs text-slate-400 block">${item.observacion}</span>` : '';
 
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        movimientosList.push({ id: doc.id, ...data });
-                    });
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">${idx}</span>
+          <div>
+            <span class="font-bold text-slate-800">${item.patente}</span>
+            <span class="text-xs text-slate-400 ml-2">${item.hora}</span>
+            ${obsHTML}
+          </div>
+        </div>
+        <button onclick="eliminarRegistro('${item.id}')" class="text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 p-1 rounded-md text-xs font-bold px-2">✕</button>
+      `;
+      container.appendChild(div);
+    }
 
-                    // Ordenar por hora/timestamp
-                    movimientosList.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    function agregarPatente(categoria, inputId, obsInputId = null) {
+      const input = document.getElementById(inputId);
+      const patente = input.value.trim().toUpperCase();
 
-                    if (movimientosList.length === 0) {
-                        tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-400">No hay movimientos registrados para esta fecha.</td></tr>`;
-                        return;
-                    }
+      if (!patente) return;
 
-                    movimientosList.forEach((m) => {
-                        html += `
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-mono font-bold text-gray-800">${m.patente}</td>
-                                <td class="py-3 px-4">${m.tipo}</td>
-                                <td class="py-3 px-4">${m.fecha}</td>
-                                <td class="py-3 px-4">${m.hora}</td>
-                                <td class="py-3 px-4 text-center">
-                                    <button onclick="eliminarMovimiento('${m.id}')" class="text-red-500 hover:text-red-700 font-medium text-xs">Eliminar</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
+      let observacion = '';
+      if (obsInputId) {
+        const obsInput = document.getElementById(obsInputId);
+        observacion = obsInput.value.trim();
+        obsInput.value = '';
+      }
 
-                    tablaCuerpo.innerHTML = html;
-                })
-                .catch((error) => {
-                    console.error("Error al cargar registros:", error);
-                    tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-red-500">Error al cargar registros. Revisa las reglas o índices en Firebase.</td></tr>`;
-                });
+      const ahora = new Date();
+      const horaStr = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      db.collection('movimientos').add({
+        patente: patente,
+        categoria: categoria,
+        fecha: filtroFecha.value,
+        hora: horaStr,
+        observacion: observacion,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        input.value = '';
+      });
+    }
+
+    function eliminarRegistro(id) {
+      db.collection('movimientos').doc(id).delete();
+    }
+
+    function compartirWhatsApp() {
+      if (registrosActuales.length === 0) {
+        alert("No hay registros para la fecha seleccionada.");
+        return;
+      }
+
+      let mensaje = `*Resumen Movimientos RAC (${filtroFecha.value})*\n\n`;
+
+      Object.keys(categorias).forEach(cat => {
+        const items = registrosActuales.filter(r => r.categoria === cat);
+        if (items.length > 0) {
+          mensaje += `*${cat} (${items.length}):*\n`;
+          items.forEach(i => {
+            mensaje += `- ${i.patente} (${i.hora})${i.observacion ? ' - Obs: ' + i.observacion : ''}\n`;
+          });
+          mensaje += `\n`;
         }
+      });
 
-        // Eliminar registro
-        async function eliminarMovimiento(id) {
-            if (confirm("¿Estás seguro de eliminar este registro?")) {
-                try {
-                    await db.collection('movimientos').doc(id).delete();
-                    cargarMovimientos();
-                } catch (err) {
-                    alert("Error al eliminar: " + err.message);
-                }
-            }
-        }
+      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
 
-        // Generar Reporte PDF con html2pdf.js
-        btnGenerarPDF.addEventListener('click', async () => {
-            const fechaSeleccionada = filtroFecha.value;
-
-            try {
-                const snapshot = await db.collection('movimientos')
-                    .where("fecha", "==", fechaSeleccionada)
-                    .get();
-
-                const registros = [];
-                snapshot.forEach(doc => registros.push(doc.data()));
-
-                // Agrupar registros por categoría
-                const agrupados = {};
-                CATEGORIAS_INFORME.forEach(cat => agrupados[cat] = []);
-
-                registros.forEach(item => {
-                    const tipoNormalizado = item.tipo ? item.tipo.trim() : '';
-                    if (agrupados[tipoNormalizado]) {
-                        agrupados[tipoNormalizado].push(item);
-                    } else {
-                        // Mapeo flexible para variaciones
-                        if (tipoNormalizado.includes('Pendiente')) {
-                            agrupados['Devolucion Definitiva Pendiente de Ingreso'].push(item);
-                        } else if (tipoNormalizado.includes('Devolucion Definitiva') || tipoNormalizado.includes('Devolución Definitiva')) {
-                            agrupados['Devolucion Definitiva'].push(item);
-                        } else if (tipoNormalizado.includes('Entregadas')) {
-                            agrupados['Entregadas a Logistica'].push(item);
-                        } else if (tipoNormalizado.includes('Rechazos')) {
-                            agrupados['Rechazos / Reingresos'].push(item);
-                        } else if (tipoNormalizado.includes('Retiros')) {
-                            agrupados['Retiros de Taller'].push(item);
-                        } else if (tipoNormalizado.includes('Pendientes')) {
-                            agrupados['Pendientes de Retiro'].push(item);
-                        } else if (tipoNormalizado.includes('Ingresos')) {
-                            agrupados['Ingresos a Taller'].push(item);
-                        }
-                    }
-                });
-
-                // Construir HTML del PDF
-                document.getElementById('pdfEncabezadoInfo').innerText = `Periodo: DIA | Fecha de emisión: ${fechaSeleccionada}`;
-                
-                let htmlPDF = '';
-                CATEGORIAS_INFORME.forEach(cat => {
-                    const lista = agrupados[cat] || [];
-                    htmlPDF += `<div class="informe-seccion-titulo">${cat} (${lista.length})</div>`;
-                    
-                    if (lista.length === 0) {
-                        htmlPDF += `<div class="informe-vacio">Sin movimientos</div>`;
-                    } else {
-                        lista.forEach(m => {
-                            htmlPDF += `<div class="informe-item">- ${m.patente} | ${m.hora}</div>`;
-                        });
-                    }
-                });
-
-                document.getElementById('pdfContenidoCategorias').innerHTML = htmlPDF;
-
-                // Generar PDF
-                const elementoInforme = document.getElementById('informeArea');
-                const opt = {
-                    margin:       [10, 15, 10, 15],
-                    filename:     `Informe_Movimientos_RAC_${fechaSeleccionada}.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, useCORS: true },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-
-                html2pdf().set(opt).from(elementoInforme).save();
-
-            } catch (error) {
-                alert("Error generando el informe: " + error.message);
-            }
-        });
-
-        // Carga inicial
-        cargarMovimientos();
-    </script>
+    // Carga inicial
+    cargarDatos();
+  </script>
 </body>
 </html>
