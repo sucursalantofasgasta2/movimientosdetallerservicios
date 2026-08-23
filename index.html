@@ -8,12 +8,12 @@
 <title>Movimientos RAC</title>
 
 <!-- =====================================================
-     FIREBASE
+     FIREBASE (CONEXIÓN A LA BASE DE DATOS)
 ===================================================== -->
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
 import {
     getFirestore,
@@ -26,35 +26,26 @@ import {
     getDocs,
     orderBy,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 
 /* =====================================================
-   CONFIGURACIÓN FIREBASE
-   Reemplaza estos datos por los de tu proyecto
+   AQUÍ ESTÁ LA CONEXIÓN A TU BASE DE DATOS
 ===================================================== */
 
 const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU-PROYECTO.firebaseapp.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU-PROYECTO.firebasestorage.app",
-    messagingSenderId: "TU_MESSAGING_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyA-DW3YY-YKqGrIKgChDaI_JnL3v0EkQg4",
+    authDomain: "movimientos-taller-c4547.firebaseapp.com",
+    projectId: "movimientos-taller-c4547",
+    storageBucket: "movimientos-taller-c4547.firebasestorage.app",
+    messagingSenderId: "648011372071",
+    appId: "1:648011372071:web:fd7183bea150ceb8856002"
 };
 
 
-/* =====================================================
-   INICIALIZAR FIREBASE
-===================================================== */
-
+/* Inicialización e inyección de la base de datos */
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-
-/* =====================================================
-   HACER FIREBASE DISPONIBLE PARA EL RESTO DEL HTML
-===================================================== */
 
 window.firebaseDB = db;
 
@@ -70,11 +61,6 @@ window.firebaseFunctions = {
     serverTimestamp
 };
 
-
-/* =====================================================
-   INDICAR QUE FIREBASE ESTÁ LISTO
-===================================================== */
-
 window.dispatchEvent(
     new Event("firebaseReady")
 );
@@ -83,7 +69,7 @@ window.dispatchEvent(
 
 
 <!-- =====================================================
-     PDF
+     LIBRERÍA PDF
 ===================================================== -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -823,11 +809,11 @@ header{
 </div>
 
 
-<script>
+<!-- =====================================================
+     LÓGICA DE LA APLICACIÓN
+===================================================== -->
 
-/* =====================================================
-   VARIABLES
-===================================================== */
+<script>
 
 let db = null;
 let firebaseReady = false;
@@ -836,10 +822,7 @@ let informeActual = "dia";
 let datosInformeActuales = [];
 
 
-/* =====================================================
-   ESPERAR FIREBASE
-===================================================== */
-
+/* ESPERAR A QUE FIREBASE CONECTE */
 window.addEventListener("firebaseReady", async function(){
     db = window.firebaseDB;
     firebaseReady = true;
@@ -852,10 +835,7 @@ window.addEventListener("firebaseReady", async function(){
 });
 
 
-/* =====================================================
-   FECHA
-===================================================== */
-
+/* FECHAS */
 function hoy(){
     const d = new Date();
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
@@ -870,10 +850,7 @@ function fechaBonita(){
 document.getElementById("fecha").innerText = fechaBonita();
 
 
-/* =====================================================
-   CARGAR MOVIMIENTOS DE HOY
-===================================================== */
-
+/* CARGAR MOVIMIENTOS DESDE FIRESTORE */
 async function cargarMovimientos(){
     if(!firebaseReady) return;
 
@@ -891,18 +868,15 @@ async function cargarMovimientos(){
         actualizar();
     }catch(error){
         console.error(error);
-        alert("No fue posible cargar los datos de Firebase.\n\n" + error.message);
+        alert("Error al cargar datos desde Firebase: " + error.message);
     }
 }
 
 
-/* =====================================================
-   AGREGAR
-===================================================== */
-
+/* GUARDAR NUEVA PATENTE EN FIRESTORE */
 async function agregar(tipo){
     if(!firebaseReady){
-        alert("Firebase todavía no está conectado.");
+        alert("Esperando conexión con Firebase...");
         return;
     }
 
@@ -950,15 +924,12 @@ async function agregar(tipo){
         generarInforme(informeActual);
     }catch(error){
         console.error(error);
-        alert("No se pudo guardar el movimiento.\n\n" + error.message);
+        alert("Error al guardar en Firebase: " + error.message);
     }
 }
 
 
-/* =====================================================
-   ENTER
-===================================================== */
-
+/* EVENTO ENTER */
 function enter(event, tipo){
     if(event.key === "Enter"){
         agregar(tipo);
@@ -966,10 +937,7 @@ function enter(event, tipo){
 }
 
 
-/* =====================================================
-   ACTUALIZAR
-===================================================== */
-
+/* ACTUALIZAR INTERFAZ */
 function actualizar(){
     const datos = movimientos;
 
@@ -989,10 +957,7 @@ function actualizar(){
 }
 
 
-/* =====================================================
-   MOSTRAR LISTA
-===================================================== */
-
+/* MOSTRAR PATENTES EN LISTA */
 function mostrarLista(datos, id){
     const contenedor = document.getElementById(id);
 
@@ -1017,10 +982,7 @@ function mostrarLista(datos, id){
 }
 
 
-/* =====================================================
-   ELIMINAR
-===================================================== */
-
+/* ELIMINAR DE FIRESTORE */
 async function eliminar(id){
     if(!confirm("¿Eliminar este movimiento?")) return;
 
@@ -1033,15 +995,12 @@ async function eliminar(id){
         generarInforme(informeActual);
     }catch(error){
         console.error(error);
-        alert("No se pudo eliminar.\n\n" + error.message);
+        alert("Error al eliminar de Firebase: " + error.message);
     }
 }
 
 
-/* =====================================================
-   OBTENER DATOS INFORME
-===================================================== */
-
+/* OBTENER HISTÓRICOS PARA INFORMES */
 async function obtenerDatosInforme(periodo){
     if(!firebaseReady) return [];
 
@@ -1074,16 +1033,13 @@ async function obtenerDatosInforme(periodo){
         return snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
     }catch(error){
         console.error(error);
-        alert("No se pudo generar el informe.\n\n" + error.message);
+        alert("Error al cargar informe desde Firebase: " + error.message);
         return [];
     }
 }
 
 
-/* =====================================================
-   INFORME
-===================================================== */
-
+/* GENERAR RESUMEN INFORME */
 async function generarInforme(periodo){
     informeActual = periodo;
     const datos = await obtenerDatosInforme(periodo);
@@ -1122,10 +1078,7 @@ async function generarInforme(periodo){
 }
 
 
-/* =====================================================
-   DETALLE
-===================================================== */
-
+/* DETALLE DE INFORMES */
 function generarDetalle(datos){
     const categorias = [
         { tipo:"INGRESO", titulo:"🚗 Ingresos a Taller" },
@@ -1166,13 +1119,10 @@ function generarDetalle(datos){
 }
 
 
-/* =====================================================
-   EXPORTAR PDF
-===================================================== */
-
+/* EXPORTAR A PDF */
 function exportarPDF(){
     if(!window.jspdf){
-        alert("La librería jsPDF no está disponible.");
+        alert("La librería jsPDF aún no ha cargado.");
         return;
     }
 
@@ -1237,10 +1187,7 @@ function exportarPDF(){
 }
 
 
-/* =====================================================
-   ENVIAR WHATSAPP
-===================================================== */
-
+/* ENVIAR A WHATSAPP */
 function enviarWhatsApp(){
     if(datosInformeActuales.length === 0){
         alert("No hay datos para enviar.");
