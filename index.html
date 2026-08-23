@@ -1,1229 +1,400 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Movimientos RAC</title>
-
-<!-- =====================================================
-     FIREBASE (CONEXIÓN A LA BASE DE DATOS)
-===================================================== -->
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    deleteDoc,
-    doc,
-    query,
-    where,
-    getDocs,
-    orderBy,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-
-/* =====================================================
-   AQUÍ ESTÁ LA CONEXIÓN A TU BASE DE DATOS
-===================================================== */
-
-const firebaseConfig = {
-    apiKey: "AIzaSyA-DW3YY-YKqGrIKgChDaI_JnL3v0EkQg4",
-    authDomain: "movimientos-taller-c4547.firebaseapp.com",
-    projectId: "movimientos-taller-c4547",
-    storageBucket: "movimientos-taller-c4547.firebasestorage.app",
-    messagingSenderId: "648011372071",
-    appId: "1:648011372071:web:fd7183bea150ceb8856002"
-};
-
-
-/* Inicialización e inyección de la base de datos */
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.firebaseDB = db;
-
-window.firebaseFunctions = {
-    collection,
-    addDoc,
-    deleteDoc,
-    doc,
-    query,
-    where,
-    getDocs,
-    orderBy,
-    serverTimestamp
-};
-
-window.dispatchEvent(
-    new Event("firebaseReady")
-);
-
-</script>
-
-
-<!-- =====================================================
-     LIBRERÍA PDF
-===================================================== -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
-<style>
-
-/* =====================================================
-   GENERAL
-===================================================== */
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-body{
-    font-family: Arial, Helvetica, sans-serif;
-    background:#f4f6f9;
-    color:#172033;
-}
-
-
-/* =====================================================
-   HEADER
-===================================================== */
-
-header{
-    background:#111827;
-    color:white;
-    padding:18px 30px;
-}
-
-.header{
-    max-width:1450px;
-    margin:auto;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.logo{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.logo-icon{
-    width:44px;
-    height:44px;
-    background:#2563eb;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-}
-
-.logo h1{
-    font-size:19px;
-}
-
-.logo p{
-    color:#9ca3af;
-    font-size:12px;
-    margin-top:3px;
-}
-
-.fecha{
-    color:#d1d5db;
-    font-size:13px;
-}
-
-
-/* =====================================================
-   ESTADO FIREBASE
-===================================================== */
-
-.estado-firebase{
-    max-width:1450px;
-    margin:15px auto 0;
-    padding:0 30px;
-}
-
-.estado{
-    display:inline-flex;
-    align-items:center;
-    gap:7px;
-    padding:7px 11px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:bold;
-}
-
-.estado-ok{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.estado-error{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-
-/* =====================================================
-   CONTENEDOR
-===================================================== */
-
-.container{
-    max-width:1450px;
-    margin:auto;
-    padding:30px;
-}
-
-
-/* =====================================================
-   TITULO
-===================================================== */
-
-.titulo{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:25px;
-}
-
-.titulo h2{
-    font-size:28px;
-}
-
-.titulo p{
-    color:#6b7280;
-    margin-top:5px;
-}
-
-
-/* =====================================================
-   INDICADORES
-===================================================== */
-
-.indicadores{
-    display:grid;
-    grid-template-columns: repeat(6,1fr);
-    gap:15px;
-    margin-bottom:25px;
-}
-
-.indicador{
-    background:white;
-    border:1px solid #e3e7ec;
-    border-radius:15px;
-    padding:20px;
-}
-
-.indicador span{
-    color:#6b7280;
-    font-size:13px;
-}
-
-.indicador strong{
-    display:block;
-    font-size:31px;
-    margin-top:10px;
-}
-
-
-/* =====================================================
-   GRID
-===================================================== */
-
-.movimientos-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:20px;
-}
-
-
-/* =====================================================
-   CARD
-===================================================== */
-
-.movimiento-card{
-    background:white;
-    border:1px solid #e1e5ea;
-    border-radius:16px;
-    padding:22px;
-    min-height:280px;
-}
-
-.card-header{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:18px;
-}
-
-.icono{
-    width:40px;
-    height:40px;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:19px;
-}
-
-.icono-verde{ background:#dcfce7; }
-.icono-azul{ background:#dbeafe; }
-.icono-rojo{ background:#fee2e2; }
-.icono-amarillo{ background:#fef3c7; }
-.icono-naranja{ background:#ffedd5; }
-.icono-morado{ background:#ede9fe; }
-
-.card-header h3{ font-size:17px; }
-.card-header p{
-    color:#9ca3af;
-    font-size:12px;
-    margin-top:3px;
-}
-
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-.input-row{
-    display:flex;
-    gap:8px;
-    margin-bottom:18px;
-}
-
-.input-row input{
-    flex:1;
-    min-width:0;
-    padding:13px;
-    border:1px solid #d5dae1;
-    border-radius:9px;
-    font-size:14px;
-    text-transform:uppercase;
-    outline:none;
-}
-
-.input-row input:focus{
-    border-color:#2563eb;
-}
-
-.btn-add{
-    width:46px;
-    border:none;
-    border-radius:9px;
-    background:#2563eb;
-    color:white;
-    font-size:21px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.btn-add:hover{
-    background:#1d4ed8;
-}
-
-
-/* =====================================================
-   OBSERVACION
-===================================================== */
-
-.observacion-row{
-    display:flex;
-    gap:8px;
-    margin-bottom:18px;
-}
-
-.observacion-row input{
-    width:100%;
-    padding:11px;
-    border:1px solid #d5dae1;
-    border-radius:9px;
-    outline:none;
-    font-size:13px;
-}
-
-
-/* =====================================================
-   LISTA
-===================================================== */
-
-.lista{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-
-/* =====================================================
-   ITEM
-===================================================== */
-
-.item{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    background:#f8fafc;
-    border:1px solid #edf0f3;
-    border-radius:9px;
-    padding:10px 12px;
-}
-
-.item-left{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.numero{
-    width:24px;
-    height:24px;
-    border-radius:50%;
-    background:#e5e7eb;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:11px;
-    font-weight:bold;
-}
-
-.patente{
-    font-weight:bold;
-    font-size:14px;
-    letter-spacing:.5px;
-}
-
-.hora{
-    color:#9ca3af;
-    font-size:11px;
-    margin-left:5px;
-}
-
-.obs{
-    color:#6b7280;
-    font-size:11px;
-    margin-left:10px;
-}
-
-.eliminar{
-    border:none;
-    background:#fee2e2;
-    color:#dc2626;
-    border-radius:7px;
-    width:28px;
-    height:28px;
-    cursor:pointer;
-    font-size:18px;
-}
-
-
-/* =====================================================
-   VACIO
-===================================================== */
-
-.vacio{
-    text-align:center;
-    color:#a0a7b1;
-    padding:20px;
-    font-size:13px;
-}
-
-
-/* =====================================================
-   INFORMES
-===================================================== */
-
-.informes{
-    margin-top:20px;
-    background:white;
-    border:1px solid #e1e5ea;
-    border-radius:16px;
-    padding:22px;
-}
-
-.informes-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-.informes-header h3{
-    font-size:18px;
-}
-
-.botones-informe{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-}
-
-.btn{
-    border:none;
-    border-radius:9px;
-    padding:11px 16px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.btn-dark{
-    background:#111827;
-    color:white;
-}
-
-.btn-pdf{
-    background:#dc2626;
-    color:white;
-}
-
-.btn-whatsapp{
-    background:#16a34a;
-    color:white;
-}
-
-
-/* =====================================================
-   INFORME BOX
-===================================================== */
-
-.informe{
-    display:grid;
-    grid-template-columns: repeat(7,1fr);
-    gap:12px;
-}
-
-.informe-box{
-    background:#f8fafc;
-    border-radius:10px;
-    padding:16px;
-}
-
-.informe-box span{
-    color:#6b7280;
-    font-size:12px;
-}
-
-.informe-box strong{
-    display:block;
-    font-size:25px;
-    margin-top:8px;
-}
-
-
-/* =====================================================
-   DETALLE
-===================================================== */
-
-.detalle-informe{
-    margin-top:20px;
-    display:grid;
-    grid-template-columns: repeat(2,1fr);
-    gap:15px;
-}
-
-.detalle-box{
-    background:#f8fafc;
-    border:1px solid #edf0f3;
-    border-radius:10px;
-    padding:15px;
-}
-
-.detalle-box h4{
-    margin-bottom:10px;
-    font-size:14px;
-}
-
-.detalle-box p{
-    font-size:13px;
-    color:#4b5563;
-    padding:5px 0;
-    border-bottom:1px solid #e5e7eb;
-}
-
-.detalle-box p:last-child{
-    border-bottom:none;
-}
-
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-
-@media(max-width:1300px){
-    .indicadores{ grid-template-columns: repeat(3,1fr); }
-    .informe{ grid-template-columns: repeat(4,1fr); }
-}
-
-@media(max-width:1000px){
-    .informe{ grid-template-columns: repeat(3,1fr); }
-}
-
-@media(max-width:750px){
-    .container{ padding:15px; }
-    .movimientos-grid{ grid-template-columns:1fr; }
-    .indicadores{ grid-template-columns: 1fr 1fr; }
-    .informe{ grid-template-columns: 1fr 1fr; }
-    .detalle-informe{ grid-template-columns:1fr; }
-    .titulo{ display:block; }
-    .informes-header{ display:block; }
-    .botones-informe{ margin-top:15px; }
-}
-
-@media(max-width:500px){
-    .indicadores{ grid-template-columns:1fr; }
-    .informe{ grid-template-columns:1fr; }
-    .botones-informe button{ width:100%; }
-}
-
-</style>
-
-</head>
-
-
-<body>
-
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
-
-<header>
-<div class="header">
-<div class="logo">
-<div class="logo-icon">🚗</div>
-<div>
-<h1>MOVIMIENTOS RAC</h1>
-<p>Control de movimientos de vehículos</p>
-</div>
-</div>
-<div class="fecha" id="fecha"></div>
-</div>
-</header>
-
-
-<!-- =====================================================
-     ESTADO FIREBASE
-===================================================== -->
-
-<div class="estado-firebase">
-<div id="estadoFirebase" class="estado estado-error">
-🔴 Conectando con Firebase...
-</div>
-</div>
-
-
-<!-- =====================================================
-     CONTENIDO
-===================================================== -->
-
-<div class="container">
-
-<div class="titulo">
-<div>
-<h2>Movimientos RAC</h2>
-<p>Registro operativo del día</p>
-</div>
-</div>
-
-
-<!-- =====================================================
-     INDICADORES
-===================================================== -->
-
-<div class="indicadores">
-
-<div class="indicador">
-<span>Ingresos a Taller</span>
-<strong id="totalIngresos">0</strong>
-</div>
-
-<div class="indicador">
-<span>Pendientes de Retiro</span>
-<strong id="totalPendientes">0</strong>
-</div>
-
-<div class="indicador">
-<span>Retiros de Taller</span>
-<strong id="totalRetiros">0</strong>
-</div>
-
-<div class="indicador">
-<span>Rechazos / Reingresos</span>
-<strong id="totalRechazos">0</strong>
-</div>
-
-<div class="indicador">
-<span>Entregadas a Logística</span>
-<strong id="totalLogistica">0</strong>
-</div>
-
-<div class="indicador">
-<span>Devolución Definitiva</span>
-<strong id="totalDevolucion">0</strong>
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     MOVIMIENTOS
-===================================================== -->
-
-<div class="movimientos-grid">
-
-<!-- INGRESO -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-verde">🚗</div>
-<div>
-<h3>Ingresos a Taller</h3>
-<p>Registrar vehículos ingresados</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputIngreso" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'INGRESO')">
-<button class="btn-add" onclick="agregar('INGRESO')">+</button>
-</div>
-<div class="lista" id="listaIngreso"></div>
-</div>
-
-<!-- PENDIENTES -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-naranja">⏳</div>
-<div>
-<h3>Pendientes de Retiro</h3>
-<p>Registrar vehículos pendientes</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputPendiente" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'PENDIENTE')">
-<button class="btn-add" onclick="agregar('PENDIENTE')">+</button>
-</div>
-<div class="lista" id="listaPendiente"></div>
-</div>
-
-<!-- RETIROS -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-azul">🔧</div>
-<div>
-<h3>Retiros de Taller</h3>
-<p>Registrar vehículos retirados</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputRetiro" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'RETIRO')">
-<button class="btn-add" onclick="agregar('RETIRO')">+</button>
-</div>
-<div class="lista" id="listaRetiro"></div>
-</div>
-
-<!-- RECHAZOS -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-rojo">🔴</div>
-<div>
-<h3>Rechazos y Reingresos</h3>
-<p>Registrar patente y observación</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputRechazo" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'RECHAZO')">
-<button class="btn-add" onclick="agregar('RECHAZO')">+</button>
-</div>
-<div class="observacion-row">
-<input id="observacion" placeholder="Observación">
-</div>
-<div class="lista" id="listaRechazo"></div>
-</div>
-
-<!-- LOGISTICA -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-amarillo">📦</div>
-<div>
-<h3>Entregadas a Logística</h3>
-<p>Registrar vehículos entregados</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputLogistica" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'LOGISTICA')">
-<button class="btn-add" onclick="agregar('LOGISTICA')">+</button>
-</div>
-<div class="lista" id="listaLogistica"></div>
-</div>
-
-<!-- DEVOLUCION -->
-<div class="movimiento-card">
-<div class="card-header">
-<div class="icono icono-morado">🔄</div>
-<div>
-<h3>Devolución Definitiva</h3>
-<p>Pendientes de ingreso</p>
-</div>
-</div>
-<div class="input-row">
-<input id="inputDevolucion" placeholder="Ingrese patente" maxlength="8" onkeydown="enter(event,'DEVOLUCION')">
-<button class="btn-add" onclick="agregar('DEVOLUCION')">+</button>
-</div>
-<div class="lista" id="listaDevolucion"></div>
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     INFORMES
-===================================================== -->
-
-<div class="informes">
-
-<div class="informes-header">
-<h3>Informes</h3>
-
-<div class="botones-informe">
-<button class="btn btn-dark" onclick="generarInforme('dia')">📅 Diario</button>
-<button class="btn btn-dark" onclick="generarInforme('semana')">📊 Semanal</button>
-<button class="btn btn-dark" onclick="generarInforme('mes')">📈 Mensual</button>
-<button class="btn btn-pdf" onclick="exportarPDF()">📄 Exportar PDF</button>
-<button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📱 WhatsApp</button>
-</div>
-</div>
-
-<div class="informe" id="informe"></div>
-<div class="detalle-informe" id="detalleInforme"></div>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-     LÓGICA DE LA APLICACIÓN
-===================================================== -->
-
-<script>
-
-let db = null;
-let firebaseReady = false;
-let movimientos = [];
-let informeActual = "dia";
-let datosInformeActuales = [];
-
-
-/* ESPERAR A QUE FIREBASE CONECTE */
-window.addEventListener("firebaseReady", async function(){
-    db = window.firebaseDB;
-    firebaseReady = true;
-
-    document.getElementById("estadoFirebase").className = "estado estado-ok";
-    document.getElementById("estadoFirebase").innerHTML = "🟢 Firebase conectado";
-
-    await cargarMovimientos();
-    generarInforme("dia");
-});
-
-
-/* FECHAS */
-function hoy(){
-    const d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-}
-
-function fechaBonita(){
-    return new Date().toLocaleDateString("es-CL", {
-        weekday:"long", day:"numeric", month:"long", year:"numeric"
-    });
-}
-
-document.getElementById("fecha").innerText = fechaBonita();
-
-
-/* CARGAR MOVIMIENTOS DESDE FIRESTORE */
-async function cargarMovimientos(){
-    if(!firebaseReady) return;
-
-    try{
-        const { collection, getDocs, query, where } = window.firebaseFunctions;
-        const q = query(
-            collection(db, "movimientos"),
-            where("fecha", "==", hoy())
-        );
-
-        const snapshot = await getDocs(q);
-        movimientos = snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
-
-        movimientos.sort((a,b) => (a.hora || "").localeCompare(b.hora || ""));
-        actualizar();
-    }catch(error){
-        console.error(error);
-        alert("Error al cargar datos desde Firebase: " + error.message);
-    }
-}
-
-
-/* GUARDAR NUEVA PATENTE EN FIRESTORE */
-async function agregar(tipo){
-    if(!firebaseReady){
-        alert("Esperando conexión con Firebase...");
-        return;
-    }
-
-    let input;
-    if(tipo==="INGRESO") input = document.getElementById("inputIngreso");
-    if(tipo==="PENDIENTE") input = document.getElementById("inputPendiente");
-    if(tipo==="RETIRO") input = document.getElementById("inputRetiro");
-    if(tipo==="RECHAZO") input = document.getElementById("inputRechazo");
-    if(tipo==="LOGISTICA") input = document.getElementById("inputLogistica");
-    if(tipo==="DEVOLUCION") input = document.getElementById("inputDevolucion");
-
-    const patente = input.value.trim().toUpperCase();
-    if(!patente){
-        input.focus();
-        return;
-    }
-
-    let observacion = "";
-    if(tipo==="RECHAZO"){
-        observacion = document.getElementById("observacion").value.trim();
-    }
-
-    const ahora = new Date();
-    const nuevo = {
-        patente: patente,
-        tipo: tipo,
-        fecha: hoy(),
-        hora: ahora.toLocaleTimeString("es-CL", { hour:"2-digit", minute:"2-digit" }),
-        observacion: observacion,
-        creado: window.firebaseFunctions.serverTimestamp()
-    };
-
-    try{
-        const { collection, addDoc } = window.firebaseFunctions;
-        const ref = await addDoc(collection(db, "movimientos"), nuevo);
-
-        movimientos.push({ id:ref.id, ...nuevo });
-        input.value = "";
-
-        if(tipo==="RECHAZO"){
-            document.getElementById("observacion").value = "";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Movimientos Taller y Servicios RAC</title>
+    
+    <!-- Tailwind CSS desde CDN para estilos modernos y limpios -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase SDK (v9/v10 Compatibility Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- html2pdf.js para exportar reportes a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
         }
 
-        actualizar();
-        generarInforme(informeActual);
-    }catch(error){
-        console.error(error);
-        alert("Error al guardar en Firebase: " + error.message);
-    }
-}
+        /* Estilos específicos para la generación e impresión del Informe PDF */
+        #informeArea {
+            background-color: #ffffff;
+            color: #111827;
+            padding: 30px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
+        .informe-titulo {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            color: #111827;
+            letter-spacing: 0.5px;
+        }
 
-/* EVENTO ENTER */
-function enter(event, tipo){
-    if(event.key === "Enter"){
-        agregar(tipo);
-    }
-}
+        .informe-subtitulo {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
 
+        .informe-seccion-titulo {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111827;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
 
-/* ACTUALIZAR INTERFAZ */
-function actualizar(){
-    const datos = movimientos;
+        .informe-item {
+            font-size: 14px;
+            color: #1f2937;
+            margin-left: 12px;
+            margin-bottom: 4px;
+            font-family: monospace;
+        }
 
-    mostrarLista(datos.filter(x => x.tipo === "INGRESO"), "listaIngreso");
-    mostrarLista(datos.filter(x => x.tipo === "PENDIENTE"), "listaPendiente");
-    mostrarLista(datos.filter(x => x.tipo === "RETIRO"), "listaRetiro");
-    mostrarLista(datos.filter(x => x.tipo === "RECHAZO"), "listaRechazo");
-    mostrarLista(datos.filter(x => x.tipo === "LOGISTICA"), "listaLogistica");
-    mostrarLista(datos.filter(x => x.tipo === "DEVOLUCION"), "listaDevolucion");
+        .informe-vacio {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-left: 12px;
+            font-style: italic;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
 
-    document.getElementById("totalIngresos").innerText = datos.filter(x => x.tipo === "INGRESO").length;
-    document.getElementById("totalPendientes").innerText = datos.filter(x => x.tipo === "PENDIENTE").length;
-    document.getElementById("totalRetiros").innerText = datos.filter(x => x.tipo === "RETIRO").length;
-    document.getElementById("totalRechazos").innerText = datos.filter(x => x.tipo === "RECHAZO").length;
-    document.getElementById("totalLogistica").innerText = datos.filter(x => x.tipo === "LOGISTICA").length;
-    document.getElementById("totalDevolucion").innerText = datos.filter(x => x.tipo === "DEVOLUCION").length;
-}
+    <div class="max-w-5xl mx-auto space-y-6">
 
+        <!-- HEADER & STATUS -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Control de Movimientos Taller RAC</h1>
+                <p class="text-sm text-gray-500">Gestión de Estados, Recepción y Entregas de Vehículos</p>
+            </div>
+            <div id="firebaseStatus" class="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100 text-yellow-800 font-medium text-sm">
+                <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></span>
+                <span>Conectando con Firebase...</span>
+            </div>
+        </div>
 
-/* MOSTRAR PATENTES EN LISTA */
-function mostrarLista(datos, id){
-    const contenedor = document.getElementById(id);
-
-    if(datos.length === 0){
-        contenedor.innerHTML = `<div class="vacio">Sin registros</div>`;
-        return;
-    }
-
-    contenedor.innerHTML = datos.map((x, index) => `
-        <div class="item">
-            <div class="item-left">
-                <div class="numero">${index+1}</div>
+        <!-- FORMULARIO DE REGISTRO DE MOVIMIENTO -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Registrar Nuevo Movimiento</h2>
+            
+            <form id="formMovimiento" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <span class="patente">${x.patente}</span>
-                    <span class="hora">${x.hora || ""}</span>
-                    ${x.observacion ? `<span class="obs">${x.observacion}</span>` : ""}
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Patente</label>
+                    <input type="text" id="inputPatente" placeholder="Ej: SWVR65" required uppercase
+                           class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 uppercase font-mono text-gray-800">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Movimiento</label>
+                    <select id="selectTipo" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Seleccionar Estado --</option>
+                        <option value="Ingresos a Taller">Ingresos a Taller</option>
+                        <option value="Pendientes de Retiro">Pendientes de Retiro</option>
+                        <option value="Retiros de Taller">Retiros de Taller</option>
+                        <option value="Rechazos / Reingresos">Rechazos / Reingresos</option>
+                        <option value="Entregadas a Logistica">Entregadas a Logística</option>
+                        <option value="Devolucion Definitiva">Devolución Definitiva</option>
+                        <option value="Devolucion Definitiva Pendiente de Ingreso">Devolución Definitiva Pendiente de Ingreso</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                    <input type="date" id="inputFecha" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="md:col-span-3 flex justify-end mt-2">
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition flex items-center gap-2">
+                        <span>Registrar Patente</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- LISTADO Y FILTROS -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b pb-4">
+                <h2 class="text-lg font-bold text-gray-800">Registros del Día</h2>
+                <div class="flex items-center gap-3">
+                    <input type="date" id="filtroFecha" class="px-3 py-1.5 border rounded-lg text-sm">
+                    <button id="btnGenerarPDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow transition flex items-center gap-2">
+                        <span>Exportar Informe PDF</span>
+                    </button>
                 </div>
             </div>
-            <button class="eliminar" onclick="eliminar('${x.id}')">×</button>
-        </div>
-    `).join("");
-}
 
-
-/* ELIMINAR DE FIRESTORE */
-async function eliminar(id){
-    if(!confirm("¿Eliminar este movimiento?")) return;
-
-    try{
-        const { deleteDoc, doc } = window.firebaseFunctions;
-        await deleteDoc(doc(db, "movimientos", id));
-
-        movimientos = movimientos.filter(x => x.id !== id);
-        actualizar();
-        generarInforme(informeActual);
-    }catch(error){
-        console.error(error);
-        alert("Error al eliminar de Firebase: " + error.message);
-    }
-}
-
-
-/* OBTENER HISTÓRICOS PARA INFORMES */
-async function obtenerDatosInforme(periodo){
-    if(!firebaseReady) return [];
-
-    try{
-        const { collection, getDocs, query, where } = window.firebaseFunctions;
-        let fechaInicio;
-
-        if(periodo === "dia"){
-            fechaInicio = hoy();
-        }
-
-        if(periodo === "semana"){
-            const d = new Date();
-            d.setHours(0,0,0,0);
-            d.setDate(d.getDate() - 6);
-            fechaInicio = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-        }
-
-        if(periodo === "mes"){
-            fechaInicio = hoy().substring(0, 8) + "01";
-        }
-
-        const q = query(
-            collection(db, "movimientos"),
-            where("fecha", ">=", fechaInicio),
-            where("fecha", "<=", hoy())
-        );
-
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
-    }catch(error){
-        console.error(error);
-        alert("Error al cargar informe desde Firebase: " + error.message);
-        return [];
-    }
-}
-
-
-/* GENERAR RESUMEN INFORME */
-async function generarInforme(periodo){
-    informeActual = periodo;
-    const datos = await obtenerDatosInforme(periodo);
-    datosInformeActuales = datos;
-
-    const tipos = [
-        { tipo:"INGRESO", nombre:"Ingresos a Taller" },
-        { tipo:"PENDIENTE", nombre:"Pendientes de Retiro" },
-        { tipo:"RETIRO", nombre:"Retiros de Taller" },
-        { tipo:"RECHAZO", nombre:"Rechazos / Reingresos" },
-        { tipo:"LOGISTICA", nombre:"Entregadas a Logística" },
-        { tipo:"DEVOLUCION", nombre:"Devolución Definitiva" }
-    ];
-
-    let html = "";
-
-    tipos.forEach(categoria => {
-        const cantidad = datos.filter(x => x.tipo === categoria.tipo).length;
-        html += `
-            <div class="informe-box">
-                <span>${categoria.nombre}</span>
-                <strong>${cantidad}</strong>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-xs">
+                            <th class="py-3 px-4">Patente</th>
+                            <th class="py-3 px-4">Tipo de Movimiento</th>
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3 px-4">Hora</th>
+                            <th class="py-3 px-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaCuerpo" class="divide-y divide-gray-200 text-sm">
+                        <!-- Carga dinámica -->
+                    </tbody>
+                </table>
             </div>
-        `;
-    });
-
-    html += `
-        <div class="informe-box">
-            <span>Total Movimientos</span>
-            <strong>${datos.length}</strong>
         </div>
-    `;
 
-    document.getElementById("informe").innerHTML = html;
-    generarDetalle(datos);
-}
+    </div>
 
+    <!-- AREA OCULTA PARA IMPRESIÓN/GENERACIÓN DE INFORME PDF -->
+    <div style="display: none;">
+        <div id="informeArea">
+            <div class="informe-titulo">INFORME DE MOVIMIENTOS RAC</div>
+            <div class="informe-subtitulo" id="pdfEncabezadoInfo">Periodo: DIA | Fecha de emisión: 2026-08-23</div>
+            
+            <div id="pdfContenidoCategorias">
+                <!-- Se construye dinámicamente incluyendo las 7 categorías -->
+            </div>
+        </div>
+    </div>
 
-/* DETALLE DE INFORMES */
-function generarDetalle(datos){
-    const categorias = [
-        { tipo:"INGRESO", titulo:"🚗 Ingresos a Taller" },
-        { tipo:"PENDIENTE", titulo:"⏳ Pendientes de Retiro" },
-        { tipo:"RETIRO", titulo:"🔧 Retiros de Taller" },
-        { tipo:"RECHAZO", titulo:"🔴 Rechazos / Reingresos" },
-        { tipo:"LOGISTICA", titulo:"📦 Entregadas a Logística" },
-        { tipo:"DEVOLUCION", titulo:"🔄 Devolución Definitiva" }
-    ];
+    <script>
+        // Configuración de Firebase Firestore
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKeyForTemplate-Only",
+            authDomain: "movimientos-taller-c4547.firebaseapp.com",
+            projectId: "movimientos-taller-c4547",
+            storageBucket: "movimientos-taller-c4547.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
 
-    let html = "";
-
-    categorias.forEach(categoria => {
-        const lista = datos.filter(x => x.tipo === categoria.tipo);
-
-        html += `
-            <div class="detalle-box">
-                <h4>${categoria.titulo}</h4>
-        `;
-
-        if(lista.length === 0){
-            html += `<p>Sin registros</p>`;
-        } else {
-            lista.sort((a,b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
-                 .forEach(x => {
-                     html += `
-                        <p>
-                            <strong>${x.patente}</strong> - ${x.hora || ""} ${x.observacion ? `(${x.observacion})` : ""}
-                        </p>
-                     `;
-                 });
-        }
-
-        html += `</div>`;
-    });
-
-    document.getElementById("detalleInforme").innerHTML = html;
-}
-
-
-/* EXPORTAR A PDF */
-function exportarPDF(){
-    if(!window.jspdf){
-        alert("La librería jsPDF aún no ha cargado.");
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const docPdf = new jsPDF();
-
-    let y = 15;
-
-    docPdf.setFontSize(16);
-    docPdf.text("INFORME DE MOVIMIENTOS RAC", 14, y);
-    y += 7;
-
-    docPdf.setFontSize(10);
-    docPdf.text(`Periodo: ${informeActual.toUpperCase()} | Fecha de emisión: ${hoy()}`, 14, y);
-    y += 10;
-
-    const categorias = [
-        { tipo:"INGRESO", titulo:"Ingresos a Taller" },
-        { tipo:"PENDIENTE", titulo:"Pendientes de Retiro" },
-        { tipo:"RETIRO", titulo:"Retiros de Taller" },
-        { tipo:"RECHAZO", titulo:"Rechazos / Reingresos" },
-        { tipo:"LOGISTICA", titulo:"Entregadas a Logistica" },
-        { tipo:"DEVOLUCION", titulo:"Devolucion Definitiva" }
-    ];
-
-    categorias.forEach(cat => {
-        const items = datosInformeActuales.filter(x => x.tipo === cat.tipo);
-        
-        docPdf.setFontSize(12);
-        docPdf.setFont(undefined, 'bold');
-        docPdf.text(`${cat.titulo} (${items.length})`, 14, y);
-        y += 6;
-
-        docPdf.setFontSize(10);
-        docPdf.setFont(undefined, 'normal');
-
-        if(items.length === 0){
-            docPdf.text("- Sin registros", 18, y);
-            y += 5;
-        } else {
-            items.forEach(item => {
-                let linea = `- ${item.patente} | ${item.hora || ""}`;
-                if(item.observacion) linea += ` | Obs: ${item.observacion}`;
-                docPdf.text(linea, 18, y);
-                y += 5;
-
-                if(y > 280){
-                    docPdf.addPage();
-                    y = 15;
-                }
+        // Inicialización de Firebase
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            
+            // Probar conexión
+            db.collection('movimientos').limit(1).get().then(() => {
+                const statusEl = document.getElementById('firebaseStatus');
+                statusEl.className = "flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800 font-medium text-sm";
+                statusEl.innerHTML = `<span class="w-3 h-3 rounded-full bg-green-500"></span><span>🟢 Firebase conectado</span>`;
+            }).catch(err => {
+                console.error("Error al conectar Firebase:", err);
             });
+        } catch (e) {
+            console.error("Error inicializando Firebase:", e);
         }
 
-        y += 4;
-        if(y > 280){
-            docPdf.addPage();
-            y = 15;
-        }
-    });
+        // Definición de Categorías Estándar del Informe (7 Categorías)
+        const CATEGORIAS_INFORME = [
+            "Ingresos a Taller",
+            "Pendientes de Retiro",
+            "Retiros de Taller",
+            "Rechazos / Reingresos",
+            "Entregadas a Logistica",
+            "Devolucion Definitiva",
+            "Devolucion Definitiva Pendiente de Ingreso"
+        ];
 
-    docPdf.save(`movimientos_rac_${informeActual}_${hoy()}.pdf`);
-}
+        // Elementos del DOM
+        const formMovimiento = document.getElementById('formMovimiento');
+        const inputPatente = document.getElementById('inputPatente');
+        const selectTipo = document.getElementById('selectTipo');
+        const inputFecha = document.getElementById('inputFecha');
+        const filtroFecha = document.getElementById('filtroFecha');
+        const tablaCuerpo = document.getElementById('tablaCuerpo');
+        const btnGenerarPDF = document.getElementById('btnGenerarPDF');
 
+        // Establecer fecha actual por defecto
+        const hoyStr = new Date().toISOString().split('T')[0];
+        inputFecha.value = hoyStr;
+        filtroFecha.value = hoyStr;
 
-/* ENVIAR A WHATSAPP */
-function enviarWhatsApp(){
-    if(datosInformeActuales.length === 0){
-        alert("No hay datos para enviar.");
-        return;
-    }
+        // Escuchar cambios en la fecha del filtro
+        filtroFecha.addEventListener('change', cargarMovimientos);
 
-    let texto = `*REPORTE DE MOVIMIENTOS RAC (${informeActual.toUpperCase()})*\n`;
-    texto += `*Fecha:* ${hoy()}\n\n`;
+        // Guardar nuevo movimiento
+        formMovimiento.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const patente = inputPatente.value.trim().toUpperCase();
+            const tipo = selectTipo.value;
+            const fecha = inputFecha.value;
+            const ahora = new Date();
+            
+            // Formatear hora (ej: 04:29 p. m.)
+            const horaFormatted = ahora.toLocaleTimeString('es-CL', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
 
-    const categorias = [
-        { tipo:"INGRESO", titulo:"🚗 Ingresos a Taller" },
-        { tipo:"PENDIENTE", titulo:"⏳ Pendientes de Retiro" },
-        { tipo:"RETIRO", titulo:"🔧 Retiros de Taller" },
-        { tipo:"RECHAZO", titulo:"🔴 Rechazos / Reingresos" },
-        { tipo:"LOGISTICA", titulo:"📦 Entregadas a Logística" },
-        { tipo:"DEVOLUCION", titulo:"🔄 Devolución Definitiva" }
-    ];
+            if (!patente || !tipo || !fecha) return;
 
-    categorias.forEach(cat => {
-        const items = datosInformeActuales.filter(x => x.tipo === cat.tipo);
-        texto += `*${cat.titulo}:* ${items.length}\n`;
+            try {
+                await db.collection('movimientos').add({
+                    patente: patente,
+                    tipo: tipo,
+                    fecha: fecha,
+                    hora: horaFormatted,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-        items.forEach(item => {
-            texto += `• ${item.patente} (${item.hora || ""})${item.observacion ? ` - ${item.observacion}` : ""}\n`;
+                inputPatente.value = '';
+                cargarMovimientos();
+            } catch (error) {
+                alert("Error al guardar la patente: " + error.message);
+            }
         });
 
-        texto += `\n`;
-    });
+        // Cargar registros desde Firestore
+        function cargarMovimientos() {
+            const fechaSeleccionada = filtroFecha.value;
+            tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">Cargando datos...</td></tr>`;
 
-    texto += `*Total Movimientos:* ${datosInformeActuales.length}`;
+            db.collection('movimientos')
+                .where("fecha", "==", fechaSeleccionada)
+                .get()
+                .then((snapshot) => {
+                    let html = '';
+                    let movimientosList = [];
 
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-    window.open(url, '_blank');
-}
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        movimientosList.push({ id: doc.id, ...data });
+                    });
 
-</script>
+                    // Ordenar por hora/timestamp
+                    movimientosList.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
+                    if (movimientosList.length === 0) {
+                        tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-400">No hay movimientos registrados para esta fecha.</td></tr>`;
+                        return;
+                    }
+
+                    movimientosList.forEach((m) => {
+                        html += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-mono font-bold text-gray-800">${m.patente}</td>
+                                <td class="py-3 px-4">${m.tipo}</td>
+                                <td class="py-3 px-4">${m.fecha}</td>
+                                <td class="py-3 px-4">${m.hora}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <button onclick="eliminarMovimiento('${m.id}')" class="text-red-500 hover:text-red-700 font-medium text-xs">Eliminar</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    tablaCuerpo.innerHTML = html;
+                })
+                .catch((error) => {
+                    console.error("Error al cargar registros:", error);
+                    tablaCuerpo.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-red-500">Error al cargar registros. Revisa las reglas o índices en Firebase.</td></tr>`;
+                });
+        }
+
+        // Eliminar registro
+        async function eliminarMovimiento(id) {
+            if (confirm("¿Estás seguro de eliminar este registro?")) {
+                try {
+                    await db.collection('movimientos').doc(id).delete();
+                    cargarMovimientos();
+                } catch (err) {
+                    alert("Error al eliminar: " + err.message);
+                }
+            }
+        }
+
+        // Generar Reporte PDF con html2pdf.js
+        btnGenerarPDF.addEventListener('click', async () => {
+            const fechaSeleccionada = filtroFecha.value;
+
+            try {
+                const snapshot = await db.collection('movimientos')
+                    .where("fecha", "==", fechaSeleccionada)
+                    .get();
+
+                const registros = [];
+                snapshot.forEach(doc => registros.push(doc.data()));
+
+                // Agrupar registros por categoría
+                const agrupados = {};
+                CATEGORIAS_INFORME.forEach(cat => agrupados[cat] = []);
+
+                registros.forEach(item => {
+                    const tipoNormalizado = item.tipo ? item.tipo.trim() : '';
+                    if (agrupados[tipoNormalizado]) {
+                        agrupados[tipoNormalizado].push(item);
+                    } else {
+                        // Mapeo flexible para variaciones
+                        if (tipoNormalizado.includes('Pendiente')) {
+                            agrupados['Devolucion Definitiva Pendiente de Ingreso'].push(item);
+                        } else if (tipoNormalizado.includes('Devolucion Definitiva') || tipoNormalizado.includes('Devolución Definitiva')) {
+                            agrupados['Devolucion Definitiva'].push(item);
+                        } else if (tipoNormalizado.includes('Entregadas')) {
+                            agrupados['Entregadas a Logistica'].push(item);
+                        } else if (tipoNormalizado.includes('Rechazos')) {
+                            agrupados['Rechazos / Reingresos'].push(item);
+                        } else if (tipoNormalizado.includes('Retiros')) {
+                            agrupados['Retiros de Taller'].push(item);
+                        } else if (tipoNormalizado.includes('Pendientes')) {
+                            agrupados['Pendientes de Retiro'].push(item);
+                        } else if (tipoNormalizado.includes('Ingresos')) {
+                            agrupados['Ingresos a Taller'].push(item);
+                        }
+                    }
+                });
+
+                // Construir HTML del PDF
+                document.getElementById('pdfEncabezadoInfo').innerText = `Periodo: DIA | Fecha de emisión: ${fechaSeleccionada}`;
+                
+                let htmlPDF = '';
+                CATEGORIAS_INFORME.forEach(cat => {
+                    const lista = agrupados[cat] || [];
+                    htmlPDF += `<div class="informe-seccion-titulo">${cat} (${lista.length})</div>`;
+                    
+                    if (lista.length === 0) {
+                        htmlPDF += `<div class="informe-vacio">Sin movimientos</div>`;
+                    } else {
+                        lista.forEach(m => {
+                            htmlPDF += `<div class="informe-item">- ${m.patente} | ${m.hora}</div>`;
+                        });
+                    }
+                });
+
+                document.getElementById('pdfContenidoCategorias').innerHTML = htmlPDF;
+
+                // Generar PDF
+                const elementoInforme = document.getElementById('informeArea');
+                const opt = {
+                    margin:       [10, 15, 10, 15],
+                    filename:     `Informe_Movimientos_RAC_${fechaSeleccionada}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(elementoInforme).save();
+
+            } catch (error) {
+                alert("Error generando el informe: " + error.message);
+            }
+        });
+
+        // Carga inicial
+        cargarMovimientos();
+    </script>
 </body>
 </html>
