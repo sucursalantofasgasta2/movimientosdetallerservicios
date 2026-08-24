@@ -13,7 +13,8 @@
     @media print {
       body * { visibility: hidden; }
       #printable-report, #printable-report * { visibility: visible; }
-      #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+      #printable-report { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -166,9 +167,9 @@
   </div>
 
   <!-- Botones de Acción Globales -->
-  <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+  <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-8">
     <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-slate-700">Generar Reporte Imprimible/PDF:</span>
+      <span class="text-sm font-semibold text-slate-700">Generar Informe:</span>
       <button onclick="generarReporte('diario')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Diario</button>
       <button onclick="generarReporte('semanal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Semanal</button>
       <button onclick="generarReporte('mensual')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Mensual</button>
@@ -179,11 +180,10 @@
     </button>
   </div>
 
-  <!-- Vista para Imprimir Reporte -->
-  <div id="printable-report" class="hidden p-8 bg-white"></div>
+  <!-- Vista para Previsualizar e Imprimir Reporte -->
+  <div id="printable-report" class="max-w-7xl mx-auto hidden bg-white p-8 rounded-2xl border border-slate-200 shadow-sm"></div>
 
   <script>
-    // Configuración Firebase Real de tu Proyecto
     const firebaseConfig = {
       apiKey: "AIzaSyA-DW3YY-YKqGrIKgChDaI_JnL3v0EkQg4",
       authDomain: "movimientos-taller-c4547.firebaseapp.com",
@@ -379,49 +379,74 @@
             return;
           }
 
-          imprimirReporte(tipo, strInicio, strFin, datos);
+          mostrarReporteEnPantalla(tipo, strInicio, strFin, datos);
         });
     }
 
-    function imprimirReporte(tipo, inicio, fin, datos) {
+    function mostrarReporteEnPantalla(tipo, inicio, fin, datos) {
       const container = document.getElementById('printable-report');
       let tituloPeriodo = tipo === 'diario' ? `Día: ${inicio}` : `Periodo: ${inicio} al ${fin}`;
 
-      let filas = datos.map((d, i) => `
-        <tr class="border-b">
-          <td class="py-2 text-left">${i + 1}</td>
-          <td class="py-2 text-left font-bold">${d.patente}</td>
-          <td class="py-2 text-left">${d.categoria}</td>
-          <td class="py-2 text-left">${d.fecha}</td>
-          <td class="py-2 text-left">${d.hora}</td>
-          <td class="py-2 text-left">${d.observacion || '-'}</td>
-        </tr>
-      `).join('');
+      let tablasCategoriasHTML = '';
+
+      Object.keys(categorias).forEach(cat => {
+        const items = datos.filter(d => d.categoria === cat);
+        
+        if (items.length > 0) {
+          let filas = items.map((d, i) => `
+            <tr class="border-b border-slate-100">
+              <td class="py-2 px-3 text-slate-500 font-medium">${i + 1}</td>
+              <td class="py-2 px-3 font-bold text-slate-800">${d.patente}</td>
+              <td class="py-2 px-3 text-slate-600">${d.fecha}</td>
+              <td class="py-2 px-3 text-slate-600">${d.hora}</td>
+              <td class="py-2 px-3 text-slate-500">${d.observacion || '-'}</td>
+            </tr>
+          `).join('');
+
+          tablasCategoriasHTML += `
+            <div class="mb-6">
+              <div class="bg-slate-100 px-3 py-2 rounded-lg font-bold text-slate-700 text-sm mb-2 flex justify-between items-center">
+                <span>${cat}</span>
+                <span class="bg-white text-slate-600 text-xs px-2 py-0.5 rounded-full border border-slate-200">${items.length} vehículo(s)</span>
+              </div>
+              <table class="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr class="border-b text-slate-400 text-xs uppercase">
+                    <th class="py-2 px-3 font-semibold w-12">#</th>
+                    <th class="py-2 px-3 font-semibold">Patente</th>
+                    <th class="py-2 px-3 font-semibold">Fecha</th>
+                    <th class="py-2 px-3 font-semibold">Hora</th>
+                    <th class="py-2 px-3 font-semibold">Observación</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          `;
+        }
+      });
 
       container.innerHTML = `
-        <div class="mb-6 border-b pb-4">
-          <h1 class="text-2xl font-bold">Informe ${tipo.toUpperCase()} - Movimientos RAC</h1>
-          <p class="text-sm text-gray-600">${tituloPeriodo}</p>
-          <p class="text-xs text-gray-500">Total de Registros: ${datos.length}</p>
+        <div class="flex justify-between items-start mb-6 border-b pb-4">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-800">Informe ${tipo.toUpperCase()} - Movimientos RAC</h2>
+            <p class="text-sm text-slate-500 mt-1">${tituloPeriodo}</p>
+            <p class="text-xs text-slate-400 mt-0.5">Total de Registros: <strong class="text-slate-700">${datos.length}</strong></p>
+          </div>
+          <div class="flex gap-2 no-print">
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded-lg shadow-sm">
+              Imprimir / Guardar PDF
+            </button>
+            <button onclick="document.getElementById('printable-report').classList.add('hidden')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs px-3 py-2 rounded-lg">
+              Cerrar
+            </button>
+          </div>
         </div>
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b-2 text-left">
-              <th class="py-2">#</th>
-              <th class="py-2">Patente</th>
-              <th class="py-2">Categoría</th>
-              <th class="py-2">Fecha</th>
-              <th class="py-2">Hora</th>
-              <th class="py-2">Observación</th>
-            </tr>
-          </thead>
-          <tbody>${filas}</tbody>
-        </table>
+        ${tablasCategoriasHTML}
       `;
 
       container.classList.remove('hidden');
-      window.print();
-      container.classList.add('hidden');
+      container.scrollIntoView({ behavior: 'smooth' });
     }
 
     cargarDatos();
