@@ -168,7 +168,7 @@
   <!-- Botones de Acción Globales -->
   <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
     <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-slate-700">Generar Reportes:</span>
+      <span class="text-sm font-semibold text-slate-700">Generar Reporte Imprimible/PDF:</span>
       <button onclick="generarReporte('diario')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Diario</button>
       <button onclick="generarReporte('semanal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Semanal</button>
       <button onclick="generarReporte('mensual')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Mensual</button>
@@ -183,14 +183,15 @@
   <div id="printable-report" class="hidden p-8 bg-white"></div>
 
   <script>
-    // Configuración Firebase (Remplazar con tus datos reales de la consola Firebase)
+    // Configuración Firebase Real de tu Proyecto
     const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_PROJECT_ID.firebaseapp.com",
-      projectId: "TU_PROJECT_ID",
-      storageBucket: "TU_PROJECT_ID.appspot.com",
-      messagingSenderId: "TU_SENDER_ID",
-      appId: "TU_APP_ID"
+      apiKey: "AIzaSyA-DW3YY-YKqGrIKgChDaI_JnL3v0EkQg4",
+      authDomain: "movimientos-taller-c4547.firebaseapp.com",
+      projectId: "movimientos-taller-c4547",
+      storageBucket: "movimientos-taller-c4547.firebasestorage.app",
+      messagingSenderId: "648011372071",
+      appId: "1:648011372071:web:fd7183bea150ceb8856002",
+      measurementId: "G-FPM23BLMXP"
     };
 
     if (!firebase.apps.length) {
@@ -316,7 +317,7 @@
         input.value = '';
       })
       .catch(err => {
-        alert("Error al guardar en Firebase: Verifica la consola y las reglas de seguridad.");
+        alert("Error al guardar en Firebase.");
         console.error("Error guardando:", err);
       });
     }
@@ -348,7 +349,6 @@
       window.open(url, '_blank');
     }
 
-    // Módulo de Reportes
     function generarReporte(tipo) {
       const fechaSel = new Date(filtroFecha.value + 'T00:00:00');
       let fechaInicio = new Date(fechaSel);
@@ -426,7 +426,5 @@
 
     cargarDatos();
   </script>
-</body>
-</html>
 </body>
 </html>
