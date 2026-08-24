@@ -10,20 +10,25 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     body { background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-report, #printable-report * { visibility: visible; }
+      #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+    }
   </style>
 </head>
 <body class="p-6">
 
   <!-- Header -->
-  <div class="max-w-7xl mx-auto mb-6 flex justify-between items-center">
+  <div class="max-w-7xl mx-auto mb-6 flex flex-wrap justify-between items-center gap-4">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">Movimientos RAC</h1>
       <p class="text-sm text-slate-500">Registro operativo del día</p>
     </div>
     <div class="flex items-center gap-3">
       <input type="date" id="filtroFecha" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-        <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span> Firebase conectado
+      <span id="status-badge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+        <span class="w-2 h-2 mr-1.5 bg-amber-500 rounded-full"></span> Conectando...
       </span>
     </div>
   </div>
@@ -70,7 +75,7 @@
       </div>
       <div class="flex gap-2 mb-4">
         <input type="text" id="in-ingresos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="agregarPatente('Ingresos a Taller', 'in-ingresos')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        <button onclick="agregarPatente('Ingresos a Taller', 'in-ingresos')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-ingresos" class="space-y-2"></div>
     </div>
@@ -86,7 +91,7 @@
       </div>
       <div class="flex gap-2 mb-4">
         <input type="text" id="in-pendientes" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="agregarPatente('Pendientes de Retiro', 'in-pendientes')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        <button onclick="agregarPatente('Pendientes de Retiro', 'in-pendientes')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-pendientes" class="space-y-2"></div>
     </div>
@@ -102,7 +107,7 @@
       </div>
       <div class="flex gap-2 mb-4">
         <input type="text" id="in-retiros" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="agregarPatente('Retiros de Taller', 'in-retiros')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        <button onclick="agregarPatente('Retiros de Taller', 'in-retiros')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-retiros" class="space-y-2"></div>
     </div>
@@ -119,7 +124,7 @@
       <div class="space-y-2 mb-4">
         <div class="flex gap-2">
           <input type="text" id="in-rechazos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <button onclick="agregarPatente('Rechazos / Reingresos', 'in-rechazos', 'obs-rechazos')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+          <button onclick="agregarPatente('Rechazos / Reingresos', 'in-rechazos', 'obs-rechazos')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
         </div>
         <input type="text" id="obs-rechazos" placeholder="Observación" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
@@ -137,7 +142,7 @@
       </div>
       <div class="flex gap-2 mb-4">
         <input type="text" id="in-logistica" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="agregarPatente('Entregadas a Logística', 'in-logistica')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        <button onclick="agregarPatente('Entregadas a Logística', 'in-logistica')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-logistica" class="space-y-2"></div>
     </div>
@@ -153,23 +158,32 @@
       </div>
       <div class="flex gap-2 mb-4">
         <input type="text" id="in-devolucion" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button onclick="agregarPatente('Devolución Definitiva', 'in-devolucion')" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-lg hover:bg-blue-700">+</button>
+        <button onclick="agregarPatente('Devolución Definitiva', 'in-devolucion')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-devolucion" class="space-y-2"></div>
     </div>
 
   </div>
 
-  <!-- Botones de Acción Globales (WhatsApp) -->
-  <div class="max-w-7xl mx-auto flex justify-end gap-3">
+  <!-- Botones de Acción Globales -->
+  <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-slate-700">Generar Reportes:</span>
+      <button onclick="generarReporte('diario')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Diario</button>
+      <button onclick="generarReporte('semanal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Semanal</button>
+      <button onclick="generarReporte('mensual')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Mensual</button>
+    </div>
     <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
-      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></button>
+      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
       Enviar Resumen por WhatsApp
     </button>
   </div>
 
+  <!-- Vista para Imprimir Reporte -->
+  <div id="printable-report" class="hidden p-8 bg-white"></div>
+
   <script>
-    // Configuración Firebase (Reemplaza con tus credenciales)
+    // Configuración Firebase (Remplazar con tus datos reales de la consola Firebase)
     const firebaseConfig = {
       apiKey: "TU_API_KEY",
       authDomain: "TU_PROJECT_ID.firebaseapp.com",
@@ -178,13 +192,13 @@
       messagingSenderId: "TU_SENDER_ID",
       appId: "TU_APP_ID"
     };
-    
+
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
 
-    // Inicializar Fecha
+    const statusBadge = document.getElementById('status-badge');
     const filtroFecha = document.getElementById('filtroFecha');
     const hoy = new Date().toISOString().split('T')[0];
     filtroFecha.value = hoy;
@@ -193,7 +207,6 @@
 
     let registrosActuales = [];
 
-    // Mapeo de Categorías
     const categorias = {
       'Ingresos a Taller': { list: 'list-ingresos', cnt: 'cnt-ingresos' },
       'Pendientes de Retiro': { list: 'list-pendientes', cnt: 'cnt-pendientes' },
@@ -205,13 +218,15 @@
 
     function cargarDatos() {
       const fechaSel = filtroFecha.value;
-      
+
       db.collection('movimientos')
         .where('fecha', '==', fechaSel)
         .onSnapshot(snapshot => {
+          statusBadge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
+          statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full"></span> Firebase conectado`;
+
           registrosActuales = [];
           
-          // Limpiar listas y contadores
           Object.keys(categorias).forEach(cat => {
             document.getElementById(categorias[cat].list).innerHTML = '';
             document.getElementById(categorias[cat].cnt).innerText = '0';
@@ -237,12 +252,15 @@
             }
           });
 
-          // Actualizar contadores
           Object.keys(conteos).forEach(cat => {
             if (categorias[cat]) {
               document.getElementById(categorias[cat].cnt).innerText = conteos[cat];
             }
           });
+        }, error => {
+          console.error("Error al cargar datos: ", error);
+          statusBadge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800";
+          statusBadge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-red-500 rounded-full"></span> Error de conexión`;
         });
     }
 
@@ -293,8 +311,13 @@
         hora: horaStr,
         observacion: observacion,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
+      })
+      .then(() => {
         input.value = '';
+      })
+      .catch(err => {
+        alert("Error al guardar en Firebase: Verifica la consola y las reglas de seguridad.");
+        console.error("Error guardando:", err);
       });
     }
 
@@ -325,8 +348,85 @@
       window.open(url, '_blank');
     }
 
-    // Carga inicial
+    // Módulo de Reportes
+    function generarReporte(tipo) {
+      const fechaSel = new Date(filtroFecha.value + 'T00:00:00');
+      let fechaInicio = new Date(fechaSel);
+      let fechaFin = new Date(fechaSel);
+
+      if (tipo === 'semanal') {
+        const diaSemana = fechaSel.getDay() || 7;
+        fechaInicio.setDate(fechaSel.getDate() - diaSemana + 1);
+        fechaFin.setDate(fechaInicio.getDate() + 6);
+      } else if (tipo === 'mensual') {
+        fechaInicio = new Date(fechaSel.getFullYear(), fechaSel.getMonth(), 1);
+        fechaFin = new Date(fechaSel.getFullYear(), fechaSel.getMonth() + 1, 0);
+      }
+
+      const strInicio = fechaInicio.toISOString().split('T')[0];
+      const strFin = fechaFin.toISOString().split('T')[0];
+
+      db.collection('movimientos')
+        .where('fecha', '>=', strInicio)
+        .where('fecha', '<=', strFin)
+        .get()
+        .then(snapshot => {
+          let datos = [];
+          snapshot.forEach(doc => datos.push(doc.data()));
+
+          if (datos.length === 0) {
+            alert(`No hay registros guardados para el periodo ${tipo} (${strInicio} a ${strFin}).`);
+            return;
+          }
+
+          imprimirReporte(tipo, strInicio, strFin, datos);
+        });
+    }
+
+    function imprimirReporte(tipo, inicio, fin, datos) {
+      const container = document.getElementById('printable-report');
+      let tituloPeriodo = tipo === 'diario' ? `Día: ${inicio}` : `Periodo: ${inicio} al ${fin}`;
+
+      let filas = datos.map((d, i) => `
+        <tr class="border-b">
+          <td class="py-2 text-left">${i + 1}</td>
+          <td class="py-2 text-left font-bold">${d.patente}</td>
+          <td class="py-2 text-left">${d.categoria}</td>
+          <td class="py-2 text-left">${d.fecha}</td>
+          <td class="py-2 text-left">${d.hora}</td>
+          <td class="py-2 text-left">${d.observacion || '-'}</td>
+        </tr>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="mb-6 border-b pb-4">
+          <h1 class="text-2xl font-bold">Informe ${tipo.toUpperCase()} - Movimientos RAC</h1>
+          <p class="text-sm text-gray-600">${tituloPeriodo}</p>
+          <p class="text-xs text-gray-500">Total de Registros: ${datos.length}</p>
+        </div>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b-2 text-left">
+              <th class="py-2">#</th>
+              <th class="py-2">Patente</th>
+              <th class="py-2">Categoría</th>
+              <th class="py-2">Fecha</th>
+              <th class="py-2">Hora</th>
+              <th class="py-2">Observación</th>
+            </tr>
+          </thead>
+          <tbody>${filas}</tbody>
+        </table>
+      `;
+
+      container.classList.remove('hidden');
+      window.print();
+      container.classList.add('hidden');
+    }
+
     cargarDatos();
   </script>
+</body>
+</html>
 </body>
 </html>
