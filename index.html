@@ -174,7 +174,8 @@
       <button onclick="generarReporte('semanal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Semanal</button>
       <button onclick="generarReporte('mensual')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Mensual</button>
     </div>
-    <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
+    <button onclick="limpiarDia()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">🗑️ Limpiar día</button>
+      <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
       <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
       Enviar Resumen por WhatsApp
     </button>
@@ -280,7 +281,6 @@
           <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">${idx}</span>
           <div>
             <span class="font-bold text-slate-800">${item.patente}</span>
-            <span class="text-xs text-slate-400 ml-2">${item.hora}</span>
             ${obsHTML}
           </div>
         </div>
@@ -301,9 +301,6 @@
         observacion = obsInput.value.trim();
         obsInput.value = '';
       }
-
-      const ahora = new Date();
-      const horaStr = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       db.collection('movimientos').add({
         patente: patente,
@@ -326,6 +323,38 @@
       db.collection('movimientos').doc(id).delete();
     }
 
+    async function limpiarDia() {
+      const fechaSel = filtroFecha.value;
+      if (!fechaSel) return;
+
+      const confirmar = confirm(
+        `¿Está seguro de limpiar todos los movimientos del día ${fechaSel}?\n\n` +
+        `Esta acción eliminará todos los registros de la fecha seleccionada.`
+      );
+
+      if (!confirmar) return;
+
+      try {
+        const snapshot = await db.collection('movimientos')
+          .where('fecha', '==', fechaSel)
+          .get();
+
+        if (snapshot.empty) {
+          alert(`No hay registros para limpiar en la fecha ${fechaSel}.`);
+          return;
+        }
+
+        const batch = db.batch();
+        snapshot.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+
+        alert(`Se limpiaron ${snapshot.size} registro(s) del día ${fechaSel}.`);
+      } catch (error) {
+        console.error("Error limpiando el día:", error);
+        alert("No fue posible limpiar los registros del día.");
+      }
+    }
+
     function compartirWhatsApp() {
       if (registrosActuales.length === 0) {
         alert("No hay registros para la fecha seleccionada.");
@@ -339,7 +368,7 @@
         if (items.length > 0) {
           mensaje += `*${cat} (${items.length}):*\n`;
           items.forEach(i => {
-            mensaje += `- ${i.patente} (${i.hora})${i.observacion ? ' - Obs: ' + i.observacion : ''}\n`;
+            mensaje += `- ${i.patente}${i.observacion ? ' - Obs: ' + i.observacion : ''}\n`;
           });
           mensaje += `\n`;
         }
@@ -398,7 +427,6 @@
               <td class="py-2 px-3 text-slate-500 font-medium">${i + 1}</td>
               <td class="py-2 px-3 font-bold text-slate-800">${d.patente}</td>
               <td class="py-2 px-3 text-slate-600">${d.fecha}</td>
-              <td class="py-2 px-3 text-slate-600">${d.hora}</td>
               <td class="py-2 px-3 text-slate-500">${d.observacion || '-'}</td>
             </tr>
           `).join('');
@@ -415,7 +443,6 @@
                     <th class="py-2 px-3 font-semibold w-12">#</th>
                     <th class="py-2 px-3 font-semibold">Patente</th>
                     <th class="py-2 px-3 font-semibold">Fecha</th>
-                    <th class="py-2 px-3 font-semibold">Hora</th>
                     <th class="py-2 px-3 font-semibold">Observación</th>
                   </tr>
                 </thead>
