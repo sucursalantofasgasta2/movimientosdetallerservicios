@@ -75,7 +75,7 @@
         </div>
       </div>
       <div class="flex gap-2 mb-4">
-        <input type="text" id="in-ingresos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+        <input type="text" id="in-ingresos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="agregarPatente('Ingresos a Taller', 'in-ingresos')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-ingresos" class="space-y-2"></div>
@@ -91,7 +91,7 @@
         </div>
       </div>
       <div class="flex gap-2 mb-4">
-        <input type="text" id="in-pendientes" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+        <input type="text" id="in-pendientes" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="agregarPatente('Pendientes de Retiro', 'in-pendientes')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-pendientes" class="space-y-2"></div>
@@ -107,7 +107,7 @@
         </div>
       </div>
       <div class="flex gap-2 mb-4">
-        <input type="text" id="in-retiros" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+        <input type="text" id="in-retiros" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="agregarPatente('Retiros de Taller', 'in-retiros')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-retiros" class="space-y-2"></div>
@@ -124,7 +124,7 @@
       </div>
       <div class="space-y-2 mb-4">
         <div class="flex gap-2">
-          <input type="text" id="in-rechazos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+          <input type="text" id="in-rechazos" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
           <button onclick="agregarPatente('Rechazos / Reingresos', 'in-rechazos', 'obs-rechazos')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
         </div>
         <input type="text" id="obs-rechazos" placeholder="Observación" class="border border-slate-200 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -142,7 +142,7 @@
         </div>
       </div>
       <div class="flex gap-2 mb-4">
-        <input type="text" id="in-logistica" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+        <input type="text" id="in-logistica" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="agregarPatente('Entregadas a Logística', 'in-logistica')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-logistica" class="space-y-2"></div>
@@ -158,7 +158,7 @@
         </div>
       </div>
       <div class="flex gap-2 mb-4">
-        <input type="text" id="in-devolucion" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500" onkeydown="if(event.key === \'Enter\') this.nextElementSibling.click();">
+        <input type="text" id="in-devolucion" placeholder="INGRESE PATENTE" class="uppercase border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button onclick="agregarPatente('Devolución Definitiva', 'in-devolucion')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-lg">+</button>
       </div>
       <div id="list-devolucion" class="space-y-2"></div>
@@ -174,8 +174,7 @@
       <button onclick="generarReporte('semanal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Semanal</button>
       <button onclick="generarReporte('mensual')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg">Mensual</button>
     </div>
-    <button onclick="limpiarDia()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">🗑️ Limpiar día</button>
-      <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
+    <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-2 text-sm">
       <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
       Enviar Resumen por WhatsApp
     </button>
@@ -281,6 +280,7 @@
           <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">${idx}</span>
           <div>
             <span class="font-bold text-slate-800">${item.patente}</span>
+            <span class="text-xs text-slate-400 ml-2">${item.hora}</span>
             ${obsHTML}
           </div>
         </div>
@@ -292,18 +292,8 @@
     function agregarPatente(categoria, inputId, obsInputId = null) {
       const input = document.getElementById(inputId);
       const patente = input.value.trim().toUpperCase();
-      const fecha = filtroFecha.value;
 
-      if (!patente) {
-        alert("Ingrese una patente.");
-        input.focus();
-        return;
-      }
-
-      if (!fecha) {
-        alert("Seleccione una fecha.");
-        return;
-      }
+      if (!patente) return;
 
       let observacion = '';
       if (obsInputId) {
@@ -312,57 +302,28 @@
         obsInput.value = '';
       }
 
+      const ahora = new Date();
+      const horaStr = ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
       db.collection('movimientos').add({
         patente: patente,
         categoria: categoria,
-        fecha: fecha,
+        fecha: filtroFecha.value,
+        hora: horaStr,
         observacion: observacion,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
         input.value = '';
-        input.focus();
       })
       .catch(err => {
+        alert("Error al guardar en Firebase.");
         console.error("Error guardando:", err);
-        alert("Error al guardar en Firebase: " + (err.message || "revise la conexión o permisos de Firebase."));
       });
     }
 
     function eliminarRegistro(id) {
       db.collection('movimientos').doc(id).delete();
-    }
-
-    async function limpiarDia() {
-      const fechaSel = filtroFecha.value;
-      if (!fechaSel) return;
-
-      const confirmar = confirm(
-        `¿Está seguro de limpiar todos los movimientos del día ${fechaSel}?\n\n` +
-        `Esta acción eliminará todos los registros de la fecha seleccionada.`
-      );
-
-      if (!confirmar) return;
-
-      try {
-        const snapshot = await db.collection('movimientos')
-          .where('fecha', '==', fechaSel)
-          .get();
-
-        if (snapshot.empty) {
-          alert(`No hay registros para limpiar en la fecha ${fechaSel}.`);
-          return;
-        }
-
-        const batch = db.batch();
-        snapshot.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-
-        alert(`Se limpiaron ${snapshot.size} registro(s) del día ${fechaSel}.`);
-      } catch (error) {
-        console.error("Error limpiando el día:", error);
-        alert("No fue posible limpiar los registros del día.");
-      }
     }
 
     function compartirWhatsApp() {
@@ -378,7 +339,7 @@
         if (items.length > 0) {
           mensaje += `*${cat} (${items.length}):*\n`;
           items.forEach(i => {
-            mensaje += `- ${i.patente}${i.observacion ? ' - Obs: ' + i.observacion : ''}\n`;
+            mensaje += `- ${i.patente} (${i.hora})${i.observacion ? ' - Obs: ' + i.observacion : ''}\n`;
           });
           mensaje += `\n`;
         }
@@ -437,6 +398,7 @@
               <td class="py-2 px-3 text-slate-500 font-medium">${i + 1}</td>
               <td class="py-2 px-3 font-bold text-slate-800">${d.patente}</td>
               <td class="py-2 px-3 text-slate-600">${d.fecha}</td>
+              <td class="py-2 px-3 text-slate-600">${d.hora}</td>
               <td class="py-2 px-3 text-slate-500">${d.observacion || '-'}</td>
             </tr>
           `).join('');
@@ -453,6 +415,7 @@
                     <th class="py-2 px-3 font-semibold w-12">#</th>
                     <th class="py-2 px-3 font-semibold">Patente</th>
                     <th class="py-2 px-3 font-semibold">Fecha</th>
+                    <th class="py-2 px-3 font-semibold">Hora</th>
                     <th class="py-2 px-3 font-semibold">Observación</th>
                   </tr>
                 </thead>
